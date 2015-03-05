@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.commonsware.cwac.wakeful.WakefulIntentService;
 import com.malinskiy.materialicons.IconDrawable;
 import com.malinskiy.materialicons.Iconify;
 import com.nextlynxtech.gdspushnotification.adapter.MainAdapter;
@@ -19,11 +20,13 @@ import com.nextlynxtech.gdspushnotification.classes.Message;
 import com.nextlynxtech.gdspushnotification.classes.NewMessageCalls;
 import com.nextlynxtech.gdspushnotification.classes.NewMessageResult;
 import com.nextlynxtech.gdspushnotification.classes.SQLFunctions;
+import com.nextlynxtech.gdspushnotification.services.MessageServices;
 
 import java.util.ArrayList;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import de.greenrobot.event.EventBus;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -40,6 +43,9 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     protected void onPause() {
+        if (EventBus.getDefault().isRegistered(MainActivity.this)) {
+            EventBus.getDefault().unregister(MainActivity.this);
+        }
         super.onPause();
         if (mGetNewMessages != null && mGetNewMessages.getStatus() != AsyncTask.Status.FINISHED) {
             mGetNewMessages.cancel(true);
@@ -89,14 +95,31 @@ public class MainActivity extends ActionBarActivity {
                             });
                         }
                         if (!stopLoading) {
-                            mGetNewMessages = null;
-                            mGetNewMessages = new getNewMessages();
-                            mGetNewMessages.execute();
+                            WakefulIntentService.sendWakefulWork(MainActivity.this, MessageServices.class);
+                            EventBus.getDefault().register(MainActivity.this);
                         }
                     }
                 }
             });
         }
+    }
+
+    public void onEvent(String data) {
+        Log.e("EVENT BUS", "I GOT SOMETHING. " + data);
+        stopLoading = true;
+        EventBus.getDefault().unregister(MainActivity.this);
+        mLoadEventMessages = null;
+        mLoadEventMessages = new loadEventMessages();
+        mLoadEventMessages.execute();
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Unregister
+        if (EventBus.getDefault().isRegistered(MainActivity.this)) {
+            EventBus.getDefault().unregister(MainActivity.this);
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -152,4 +175,5 @@ public class MainActivity extends ActionBarActivity {
             }
         }
     }
+
 }

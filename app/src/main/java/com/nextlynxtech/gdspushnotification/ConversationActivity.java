@@ -53,7 +53,9 @@ public class ConversationActivity extends ActionBarActivity {
             Message m = (Message) getIntent().getSerializableExtra("message");
             eventId = m.getEventId();
             getSupportActionBar().setTitle(m.getEventName());
-            new loadConversation().execute();
+            mLoadConversation = null;
+            mLoadConversation = new loadConversation();
+            mLoadConversation.execute();
         } else {
             Toast.makeText(ConversationActivity.this, "Unable to get message content", Toast.LENGTH_LONG).show();
             finish();
@@ -92,10 +94,11 @@ public class ConversationActivity extends ActionBarActivity {
                             lvConversation.setAdapter(adapter);
                             lvConversation.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                                 @Override
-                                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                                public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
                                     Message m = data.get(position);
+                                    final String messageId = String.valueOf(m.getMessageId());
                                     CharSequence[] replies = null;
-                                    if (m.getRecallFlag() == 1) {
+                                    if (m.getMine() == 0 && m.getRecallFlag() == 1) {
                                         final ArrayList<String> r = new ArrayList<>();
                                         if (m.getReplies() != null && m.getReplies().size() > 0) {
                                             for (String s : m.getReplies()) {
@@ -111,16 +114,25 @@ public class ConversationActivity extends ActionBarActivity {
                                                         @Override
                                                         public void onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
                                                             if (r.get(which).equals("Custom Reply")) {
-                                                                showCustomReply();
+                                                                showCustomReply(messageId);
                                                             } else {
-                                                                new sendReplyToMessage().execute(r.get(which));
+                                                                new sendReplyToMessage().execute(r.get(which), messageId);
                                                             }
                                                         }
                                                     })
                                                     .show();
                                         } else {
-                                            showCustomReply();
+                                            showCustomReply(messageId);
                                         }
+                                    } else if (m.getMine() == 1 && m.getReplySuccess() == 0) {
+                                        new MaterialDialog.Builder(ConversationActivity.this).content("Resend message?").title("Resend").positiveText("Yes").negativeText("No").cancelable(false).callback(new MaterialDialog.ButtonCallback() {
+                                            @Override
+                                            public void onPositive(MaterialDialog dialog) {
+                                                super.onPositive(dialog);
+                                                Message m = data.get(position);
+                                                new resendReply().execute(m);
+                                            }
+                                        }).build().show();
                                     }
                                 }
                             });
@@ -131,7 +143,7 @@ public class ConversationActivity extends ActionBarActivity {
         }
     }
 
-    private void showCustomReply() {
+    private void showCustomReply(final String messageId) {
         EditText etReply;
         final View positiveAction;
         MaterialDialog dialog = new MaterialDialog.Builder(this)
@@ -143,7 +155,7 @@ public class ConversationActivity extends ActionBarActivity {
                     @Override
                     public void onPositive(MaterialDialog dialog) {
                         String reply = ((EditText) dialog.getCustomView().findViewById(R.id.etReply)).getText().toString();
-                        new sendReplyToMessage().execute(reply);
+                        new sendReplyToMessage().execute(reply, messageId);
                     }
 
                     @Override
@@ -179,17 +191,74 @@ public class ConversationActivity extends ActionBarActivity {
         }
     }
 
-    private class sendReplyToMessage extends AsyncTask<String, Void, Void> {
+    private class resendReply extends AsyncTask<Message, Void, Void> {
+        GenericResult r = null;
+        Message m;
+
         @Override
-        protected Void doInBackground(String... params) {
-            String message = params[0].trim();
+        protected Void doInBackground(Message... params) {
+            m = params[0];
             try {
-                GenericResult m = MainApplication.service.UpdateMessageReply(new MessageReply("", "1234", 1, message));
-                Log.e("Result", m.getStatusDescription());
+                r = MainApplication.service.UpdateMessageReply(new MessageReply("", "1234", Integer.parseInt(m.getReplyToMessageId()), m.getMessage()));
+                Log.e("Result", r.getStatusDescription() + "|" + r.getStatusCode());
             } catch (Exception e) {
                 e.printStackTrace();
             }
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    SQLFunctions sql = new SQLFunctions(ConversationActivity.this);
+                    sql.open();
+                    if (r != null && r.getStatusDescription().equals("OK") && r.getStatusCode().equals("1")) {
+                        sql.updateReply(m, "1");
+                    }
+                    sql.close();
+                    new loadConversation().execute();
+                }
+            });
+        }
+    }
+
+    private class sendReplyToMessage extends AsyncTask<String, Void, Void> {
+        GenericResult m = null;
+        String messageId = "", messageContent = "";
+
+        @Override
+        protected Void doInBackground(String... params) {
+            messageContent = params[0].trim();
+            messageId = params[1].trim();
+            try {
+                m = MainApplication.service.UpdateMessageReply(new MessageReply("", "1234", Integer.parseInt(messageId), messageContent));
+                Log.e("Result", m.getStatusDescription() + "|" + m.getStatusCode());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    SQLFunctions sql = new SQLFunctions(ConversationActivity.this);
+                    sql.open();
+                    if (m != null && m.getStatusDescription().equals("OK") && m.getStatusCode().equals("1")) {
+                        sql.insertReply(messageContent, messageId, "1");
+                    } else {
+                        sql.insertReply(messageContent, messageId, "0");
+                    }
+                    sql.close();
+                    new loadConversation().execute();
+                }
+            });
         }
     }
 }

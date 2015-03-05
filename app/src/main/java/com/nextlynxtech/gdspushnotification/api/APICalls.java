@@ -4,6 +4,7 @@ import com.nextlynxtech.gdspushnotification.classes.GenericResult;
 import com.nextlynxtech.gdspushnotification.classes.MessageReply;
 import com.nextlynxtech.gdspushnotification.classes.NewMessageCalls;
 import com.nextlynxtech.gdspushnotification.classes.NewMessageResult;
+import com.nextlynxtech.gdspushnotification.classes.UpdateMessageRead;
 
 import retrofit.http.Body;
 import retrofit.http.GET;
@@ -22,5 +23,5 @@ public interface APICalls {
     @POST("/UpdateMessageReply")
     public GenericResult UpdateMessageReply (@Body MessageReply body);
     @POST("/UpdateMessageReadStatus")
-    public GenericResult UpdateMessageReadStatus (@Body MessageReply body);
+    public GenericResult UpdateMessageReadStatus (@Body UpdateMessageRead body);
 }

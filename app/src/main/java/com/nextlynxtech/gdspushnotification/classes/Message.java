@@ -43,6 +43,35 @@ public class Message implements Serializable {
     int read;
     int mine;
 
+    public String getReplyId() {
+        return replyId;
+    }
+
+    public void setReplyId(String replyId) {
+        this.replyId = replyId;
+    }
+
+    String replyId;
+
+    public String getReplyToMessageId() {
+        return replyToMessageId;
+    }
+
+    public void setReplyToMessageId(String replyToMessageId) {
+        this.replyToMessageId = replyToMessageId;
+    }
+
+    int replySuccess = 0;
+    String replyToMessageId = "";
+
+    public int getReplySuccess() {
+        return replySuccess;
+    }
+
+    public void setReplySuccess(int replySuccess) {
+        this.replySuccess = replySuccess;
+    }
+
     @SerializedName("lReplyOptions")
     private ArrayList<String> replies;
 

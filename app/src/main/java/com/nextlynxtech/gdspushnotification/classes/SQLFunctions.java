@@ -33,6 +33,13 @@ public class SQLFunctions {
     private static final String TABLE_MESSAGES_RECALL_FLAG = "messageRecallFlag";
     private static final String TABLE_MESSAGES_MINE = "messageMine";
     private static final String TABLE_MESSAGES_DEFINED_REPLIES = "messageReplies";
+
+    private static final String TABLE_REPLIES = "replies";
+    private static final String TABLE_REPLIES_MESSAGE = "repliesMessage";
+    private static final String TABLE_REPLIES_TIME = "repliesTime";
+    private static final String TABLE_REPLIES_TO_MESSAGE_ID = "repliesMessageId";
+    private static final String TABLE_REPLIES_SUCCESS = "repliesSuccess";
+
     private static final int DATABASE_VERSION = 1;
 
     private DbHelper ourHelper;
@@ -51,6 +58,8 @@ public class SQLFunctions {
                     + TABLE_MESSAGES_EVENT_DATE + " TEXT NOT NULL, " + TABLE_MESSAGES_EVENT_ID + " TEXT NOT NULL, " + TABLE_MESSAGES_EVENT_NAME + " TEXT NOT NULL, "
                     + TABLE_MESSAGES_EVENT_STATUS + " TEXT NOT NULL, " + TABLE_MESSAGES_MESSAGE + " TEXT NOT NULL, " + TABLE_MESSAGES_MESSAGE_DATE + " TEXT NOT NULL, "
                     + TABLE_MESSAGES_MESSAGE_HEADER + " TEXT NOT NULL, " + TABLE_MESSAGES_MESSAGE_ID + " TEXT NOT NULL, " + TABLE_MESSAGES_RECALL_FLAG + " TEXT NOT NULL, " + TABLE_MESSAGES_READ + " TEXT NOT NULL, " + TABLE_MESSAGES_MINE + " TEXT NOT NULL, " + TABLE_MESSAGES_DEFINED_REPLIES + " TEXT NOT NULL);");
+            db.execSQL("CREATE TABLE " + TABLE_REPLIES + " (" + GLOBAL_ROWID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + TABLE_REPLIES_TO_MESSAGE_ID + " TEXT NOT NULL, "
+                    + TABLE_REPLIES_MESSAGE + " TEXT NOT NULL, " + TABLE_REPLIES_TIME + " TEXT NOT NULL, " + TABLE_REPLIES_SUCCESS + " TEXT NOT NULL);");
         }
 
         @Override
@@ -162,9 +171,59 @@ public class SQLFunctions {
         }
     }
 
+    public boolean repliesExist(String messageId) {
+        Cursor cursor = ourDatabase.rawQuery("SELECT * FROM " + TABLE_REPLIES + " WHERE " + TABLE_REPLIES_TO_MESSAGE_ID + "= '" + messageId + "' ORDER BY " + GLOBAL_ROWID + " DESC", null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                cursor.close();
+                return true;
+            }
+        }
+        cursor.close();
+        return false;
+    }
+
+    public ArrayList<Message> loadReplies(String messageId) {
+        ArrayList<Message> map = new ArrayList<>();
+        String header = getMessageHeader(messageId);
+        Cursor cursor = ourDatabase.rawQuery("SELECT * FROM " + TABLE_REPLIES + " WHERE " + TABLE_REPLIES_TO_MESSAGE_ID + "= '" + messageId + "' ORDER BY " + GLOBAL_ROWID + " ASC", null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                while (cursor.isAfterLast() == false) {
+                    try {
+                        Message m = new Message();
+                        m.setMessage(cursor.getString(cursor.getColumnIndex(TABLE_REPLIES_MESSAGE)));
+                        m.setMessageDate(cursor.getString(cursor.getColumnIndex(TABLE_REPLIES_TIME)));
+                        m.setMessageHeader(header);
+                        m.setReplyId(cursor.getString(cursor.getColumnIndex(GLOBAL_ROWID)));
+                        m.setMine(1);
+                        m.setReplyToMessageId(messageId);
+                        m.setReplySuccess(cursor.getInt(cursor.getColumnIndex(TABLE_REPLIES_SUCCESS)));
+                        map.add(m);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    cursor.moveToNext();
+                }
+            }
+        }
+        cursor.close();
+        return map;
+    }
+    public String getMessageHeader(String messageId) {
+        String data = "";
+        Cursor cursor = ourDatabase.rawQuery("SELECT * FROM " + TABLE_MESSAGES + " WHERE " + TABLE_MESSAGES_MESSAGE_ID + "= '" + messageId + "'", null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                data = cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_MESSAGE_HEADER));
+            }
+        }
+        cursor.close();
+        return data;
+    }
     public ArrayList<Message> loadMessages(String eventId) {
-        ArrayList<Message> map = new ArrayList<Message>();
-        Cursor cursor = ourDatabase.rawQuery("SELECT * FROM " + TABLE_MESSAGES + " WHERE " + TABLE_MESSAGES_EVENT_ID + "= '" + eventId + "' ORDER BY " + GLOBAL_ROWID + " DESC", null);
+        ArrayList<Message> map = new ArrayList<>();
+        Cursor cursor = ourDatabase.rawQuery("SELECT * FROM " + TABLE_MESSAGES + " WHERE " + TABLE_MESSAGES_EVENT_ID + "= '" + eventId + "' ORDER BY " + GLOBAL_ROWID + " ASC", null);
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 while (cursor.isAfterLast() == false) {
@@ -178,8 +237,11 @@ public class SQLFunctions {
                         m.setMessage(cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_MESSAGE)));
                         m.setMessageDate(cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_MESSAGE_DATE)));
                         m.setMessageHeader(cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_MESSAGE_HEADER)));
-                        m.setMessageId(cursor.getInt(cursor.getColumnIndex(TABLE_MESSAGES_MESSAGE_ID)));
-                        m.setRecallFlag(cursor.getInt(cursor.getColumnIndex(TABLE_MESSAGES_RECALL_FLAG)));
+                        int messageId = cursor.getInt(cursor.getColumnIndex(TABLE_MESSAGES_MESSAGE_ID));
+                        m.setMessageId(messageId);
+                        int recallFlag = cursor.getInt(cursor.getColumnIndex(TABLE_MESSAGES_RECALL_FLAG));
+                        m.setRecallFlag(recallFlag);
+
                         m.setRead(cursor.getInt(cursor.getColumnIndex(TABLE_MESSAGES_READ)));
                         m.setMine(cursor.getInt(cursor.getColumnIndex(TABLE_MESSAGES_MINE)));
                         String r = cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_DEFINED_REPLIES));
@@ -194,9 +256,17 @@ public class SQLFunctions {
                             m.setReplies(null);
                         }
                         map.add(m);
+                        if (recallFlag == 1) {
+                            Log.e("SQL", "Needs reply. Recall flag 1");
+                            if (repliesExist(String.valueOf(messageId))) {
+                                Log.e("SQL", "User has replies for this message.");
+                                map.addAll(loadReplies(String.valueOf(messageId)));
+                            }
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+
                     cursor.moveToNext();
                 }
             }
@@ -206,7 +276,7 @@ public class SQLFunctions {
     }
 
     public ArrayList<Message> loadEventMessages() {
-        ArrayList<Message> map = new ArrayList<Message>();
+        ArrayList<Message> map = new ArrayList<>();
         Cursor cursor = ourDatabase.rawQuery("SELECT * FROM " + TABLE_MESSAGES + " GROUP BY " + TABLE_MESSAGES_EVENT_ID + " ORDER BY " + GLOBAL_ROWID + " DESC", null);
         if (cursor != null) {
             if (cursor.moveToFirst()) {
@@ -288,4 +358,26 @@ public class SQLFunctions {
         }
         cursor.close();
     }
+
+    public void insertReply(String message, String messageId, String success) {
+        ContentValues cv = new ContentValues();
+        Log.e(TAG, "New reply");
+        cv.put(TABLE_REPLIES_MESSAGE, message);
+        cv.put(TABLE_REPLIES_TIME, String.valueOf(System.currentTimeMillis() / 1000));
+        cv.put(TABLE_REPLIES_TO_MESSAGE_ID, messageId);
+        cv.put(TABLE_REPLIES_SUCCESS, success);
+        try {
+            ourDatabase.insert(TABLE_REPLIES, null, cv);
+        } catch (Exception e) {
+            Log.e(TAG, "Error creating message entry", e);
+        }
+    }
+
+    public void updateReply(Message m, String success) {
+        ContentValues args = new ContentValues();
+        args.put(TABLE_REPLIES_SUCCESS, success);
+        ourDatabase.update(TABLE_REPLIES, args, GLOBAL_ROWID + "='" + m.getReplyId() + "' AND " + TABLE_REPLIES_TO_MESSAGE_ID + " = '" + m.getReplyToMessageId() + "'", null);
+    }
+
+
 }
