@@ -7,4 +7,9 @@
         android:title="Refresh"
         android:orderInCategory="100"
         app:showAsAction="always" />
+
+    <item
+        android:id="@+id/menu_main_show_list"
+        android:title="Show Send Images/Videos"
+        app:showAsAction="always" />
 </menu>

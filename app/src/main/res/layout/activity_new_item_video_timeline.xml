@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar" />
+
+    <VideoView
+        android:id="@+id/ivNewTimelineVideo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/etDescription"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/llLayout"
+        android:layout_marginBottom="20dp"
+        android:layout_marginTop="8dp"
+        android:adjustViewBounds="true"
+        android:scaleType="centerInside" />
+
+    <com.rengwuxian.materialedittext.MaterialEditText
+        android:id="@+id/etDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:hint="Enter a Description"
+        android:textCursorDrawable="@drawable/text_cursor_cyan"
+        android:textSize="20sp"
+        app:baseColor="@android:color/black"
+        app:floatingLabel="highlight"
+        app:maxCharacters="400"
+        app:primaryColor="?colorAccent" />
+
+    <LinearLayout
+        android:id="@+id/llLayout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="5"
+        android:layout_below="@+id/toolbar"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
+
+        <com.nextlynxtech.gdspushnotification.classes.TextViewPlus
+            android:id="@+id/tvGetLocation"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginBottom="15dp"
+            android:layout_toLeftOf="@+id/bRefreshLocation"
+            android:layout_toStartOf="@+id/bRefreshLocation"
+            android:layout_weight="3"
+            android:paddingBottom="8dp"
+            android:text="Loading location.."
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="#000" />
+
+        <info.hoang8f.widget.FButton
+            android:layout_marginTop="8dp"
+            android:id="@+id/bRefreshLocation"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_weight="2"
+            android:text="Refresh"
+            android:textColor="#000"
+            app:buttonColor="@color/fbutton_default_color"
+            app:cornerRadius="0dp"
+            app:shadowColor="@color/fbutton_default_shadow_color"
+            app:shadowEnabled="true"
+            app:shadowHeight="5dp" />
+    </LinearLayout>
+
+</RelativeLayout>

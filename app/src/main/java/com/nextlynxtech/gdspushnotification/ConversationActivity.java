@@ -22,6 +22,7 @@ import com.nextlynxtech.gdspushnotification.classes.GenericResult;
 import com.nextlynxtech.gdspushnotification.classes.Message;
 import com.nextlynxtech.gdspushnotification.classes.MessageReply;
 import com.nextlynxtech.gdspushnotification.classes.SQLFunctions;
+import com.nextlynxtech.gdspushnotification.classes.Utils;
 
 import java.util.ArrayList;
 
@@ -228,13 +229,24 @@ public class ConversationActivity extends ActionBarActivity {
     private class sendReplyToMessage extends AsyncTask<String, Void, Void> {
         GenericResult m = null;
         String messageId = "", messageContent = "";
+        int id = 0;
 
         @Override
         protected Void doInBackground(String... params) {
             messageContent = params[0].trim();
             messageId = params[1].trim();
+            SQLFunctions sql = new SQLFunctions(ConversationActivity.this);
+            sql.open();
+            id = sql.insertReply(messageContent, messageId, "2"); //sending
+            sql.close();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    new loadConversation().execute();
+                }
+            });
             try {
-                m = MainApplication.service.UpdateMessageReply(new MessageReply("", "1234", Integer.parseInt(messageId), messageContent));
+                m = MainApplication.service.UpdateMessageReply(new MessageReply("", new Utils(ConversationActivity.this).getUnique(), Integer.parseInt(messageId), messageContent));
                 Log.e("Result", m.getStatusDescription() + "|" + m.getStatusCode());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -251,9 +263,9 @@ public class ConversationActivity extends ActionBarActivity {
                     SQLFunctions sql = new SQLFunctions(ConversationActivity.this);
                     sql.open();
                     if (m != null && m.getStatusDescription().equals("OK") && m.getStatusCode().equals("1")) {
-                        sql.insertReply(messageContent, messageId, "1");
+                        sql.updateReply(id, "1");
                     } else {
-                        sql.insertReply(messageContent, messageId, "0");
+                        sql.updateReply(id, "0");
                     }
                     sql.close();
                     new loadConversation().execute();

@@ -20,6 +20,7 @@ import com.nextlynxtech.gdspushnotification.classes.Message;
 import com.nextlynxtech.gdspushnotification.classes.NewMessageCalls;
 import com.nextlynxtech.gdspushnotification.classes.NewMessageResult;
 import com.nextlynxtech.gdspushnotification.classes.SQLFunctions;
+import com.nextlynxtech.gdspushnotification.classes.Utils;
 import com.nextlynxtech.gdspushnotification.services.MessageServices;
 
 import java.util.ArrayList;
@@ -129,6 +130,9 @@ public class MainActivity extends ActionBarActivity {
                 new IconDrawable(this, Iconify.IconValue.md_refresh)
                         .colorRes(R.color.white)
                         .actionBarSize());
+        menu.findItem(R.id.menu_main_show_list).setIcon(new IconDrawable(this, Iconify.IconValue.md_list)
+                .colorRes(R.color.white)
+                .actionBarSize());
         return true;
     }
 
@@ -140,6 +144,8 @@ public class MainActivity extends ActionBarActivity {
             mGetNewMessages = new getNewMessages();
             mGetNewMessages.execute();
             return true;
+        } else if (id == R.id.menu_main_show_list) {
+            startActivity(new Intent(MainActivity.this, MediaListActivity.class));
         }
         return super.onOptionsItemSelected(item);
     }
@@ -148,7 +154,7 @@ public class MainActivity extends ActionBarActivity {
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                NewMessageResult m = MainApplication.service.GetNewMessages(new NewMessageCalls("12", "1234"));
+                NewMessageResult m = MainApplication.service.GetNewMessages(new NewMessageCalls("12", new Utils(MainActivity.this).getUnique()));
                 Log.e("SIZE", m.getMessages().size() + " messages");
                 if (m.getMessages().size() > 0) {
                     SQLFunctions sql = new SQLFunctions(MainActivity.this);

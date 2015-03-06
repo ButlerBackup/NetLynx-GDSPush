@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar" />
+
+    <ImageView
+        android:layout_marginTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="110dp"
+        android:id="@+id/imageView3"
+        android:src="@drawable/smrt_logo"
+        android:layout_below="@+id/toolbar"
+        android:layout_alignLeft="@+id/tvRegistrationDone"
+        android:layout_alignStart="@+id/tvRegistrationDone" />
+
+    <com.nextlynxtech.gdspushnotification.classes.TextViewPlus
+        android:textColor="#000"
+        android:id="@+id/tvRegistrationDone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imageView3"
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginBottom="15dp"
+        android:layout_marginTop="8dp"
+        android:text="Large Text"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <info.hoang8f.widget.FButton
+        android:id="@+id/bRegistrationDone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/tvRegistrationDone"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:text="Next"
+        android:textColor="#000"
+        app:buttonColor="@color/fbutton_default_color"
+        app:cornerRadius="0dp"
+        app:shadowColor="@color/fbutton_default_shadow_color"
+        app:shadowEnabled="true"
+        app:shadowHeight="5dp" />
+</RelativeLayout>

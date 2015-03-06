@@ -10,6 +10,11 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/library_DynamicBox" />
+            <option value="$PROJECT_DIR$/library_ffmpeg4android" />
+            <option value="$PROJECT_DIR$/library_multichoice_abc" />
+            <option value="$PROJECT_DIR$/library_multichoice_main" />
+            <option value="$PROJECT_DIR$/library_securepreferences" />
+            <option value="$PROJECT_DIR$/library_timeago" />
           </set>
         </option>
       </GradleProjectSettings>

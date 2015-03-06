@@ -17,4 +17,6 @@
     <color name="navy">#000080</color>
     <color name="black">#000000</color>
 
+    <color name="primaryColor">#E1081F</color>
+    <color name="primaryDark">#E1081F</color>
 </resources>

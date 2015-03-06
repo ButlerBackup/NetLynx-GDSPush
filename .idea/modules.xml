@@ -5,6 +5,11 @@
       <module fileurl="file://$PROJECT_DIR$/GDSPushNotification.iml" filepath="$PROJECT_DIR$/GDSPushNotification.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/library_DynamicBox/library_DynamicBox.iml" filepath="$PROJECT_DIR$/library_DynamicBox/library_DynamicBox.iml" />
+      <module fileurl="file://$PROJECT_DIR$/library_ffmpeg4android/library_ffmpeg4android.iml" filepath="$PROJECT_DIR$/library_ffmpeg4android/library_ffmpeg4android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/library_multichoice_abc/library_multichoice_abc.iml" filepath="$PROJECT_DIR$/library_multichoice_abc/library_multichoice_abc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/library_multichoice_main/library_multichoice_main.iml" filepath="$PROJECT_DIR$/library_multichoice_main/library_multichoice_main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/library_securepreferences/library_securepreferences.iml" filepath="$PROJECT_DIR$/library_securepreferences/library_securepreferences.iml" />
+      <module fileurl="file://$PROJECT_DIR$/library_timeago/library_timeago.iml" filepath="$PROJECT_DIR$/library_timeago/library_timeago.iml" />
     </modules>
   </component>
 </project>

@@ -1,1 +1,1 @@
-include ':app', ':library_DynamicBox'
+include ':app', ':library_DynamicBox', ':library_ffmpeg4android', ':library_multichoice_main', ':library_multichoice_abc', ':library_securepreferences', ':library_timeago'

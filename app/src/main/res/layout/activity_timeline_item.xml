@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.manuelpeinado.multichoiceadapter.CheckableRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <RelativeLayout
+        android:id="@+id/rlIsVideo"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/ivTimelineImage"
+            android:layout_width="200px"
+            android:layout_height="200px"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:adjustViewBounds="true"
+            android:paddingRight="10dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_launcher" />
+
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_alignBottom="@+id/ivTimelineImage"
+            android:layout_alignEnd="@+id/ivTimelineImage"
+            android:layout_alignRight="@+id/ivTimelineImage">
+
+            <ImageView
+                android:id="@+id/ivIsVideo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/ivNewTimelineImage"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_alignTop="@+id/ivNewTimelineImage"
+                android:src="@drawable/ic_action_play_over_video" />
+        </RelativeLayout>
+
+        <com.nextlynxtech.gdspushnotification.classes.TextViewPlus
+            android:id="@+id/tvLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/ivTimelineImage"
+            android:text="Large Text"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            app:font="roboto.ttf" />
+
+        <com.nextlynxtech.gdspushnotification.classes.TextViewPlus
+            android:id="@+id/tvTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/tvLocation"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignStart="@+id/tvLocation"
+            android:layout_below="@+id/tvLocation"
+            android:gravity="right"
+            android:text="Medium Text"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            app:font="roboto.ttf" />
+
+        <com.nextlynxtech.gdspushnotification.classes.TextViewPlus
+            android:paddingBottom="10dp"
+            android:id="@+id/tvMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/tvTime"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignStart="@+id/tvTime"
+            android:layout_below="@+id/tvTime"
+            android:text="Large Text"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            app:font="roboto.ttf"
+            android:layout_above="@+id/tvStatus" />
+
+        <com.nextlynxtech.gdspushnotification.classes.TextViewPlus
+            android:id="@+id/tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/ivTimelineImage"
+            android:text="Failed. Please resend"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="#FF0000"
+            app:font="roboto.ttf" />
+
+    </RelativeLayout>
+
+
+</com.manuelpeinado.multichoiceadapter.CheckableRelativeLayout>

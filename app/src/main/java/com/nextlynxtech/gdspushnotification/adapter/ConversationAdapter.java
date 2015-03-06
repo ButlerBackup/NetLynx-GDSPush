@@ -22,7 +22,6 @@ import com.nextlynxtech.gdspushnotification.classes.UpdateMessageRead;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.TimeZone;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -100,7 +99,7 @@ public class ConversationAdapter extends BaseAdapter {
             }
             long time = Long.parseLong(m.getMessageDate()) * 1000;
             Date date = new Date(time);
-            SimpleDateFormat format = new SimpleDateFormat("d/LLL HH:mm a");
+            SimpleDateFormat format = new SimpleDateFormat("d LLL HH:mm a");
             holder.tvMessageTime.setText(format.format(date));
             if (m.getRead() != 1) {
                 new AsyncTask<Integer, Void, Void>() {
@@ -124,15 +123,21 @@ public class ConversationAdapter extends BaseAdapter {
             holder.tvMessage.setText(m.getMessage());
             long time = Long.parseLong(m.getMessageDate()) * 1000;
             Date date = new Date(time);
-            SimpleDateFormat format = new SimpleDateFormat("d/LLL HH:mm a");
+            SimpleDateFormat format = new SimpleDateFormat("d LLL HH:mm a");
             holder.tvMessageTime.setText(format.format(date));
             if (m.getReplySuccess() == 1) {
-                holder.ivRecallFlag.setImageDrawable(new IconDrawable(context, Iconify.IconValue.md_done)
+                holder.ivRecallFlag.setVisibility(View.VISIBLE);
+                holder.ivRecallFlag.setImageDrawable(new IconDrawable(context, Iconify.IconValue.md_done_all)
+                        .colorRes(R.color.red)
+                        .actionBarSize());
+            } else if (m.getReplySuccess() == 2) { //loading
+                holder.ivRecallFlag.setVisibility(View.VISIBLE);
+                holder.ivRecallFlag.setImageDrawable(new IconDrawable(context, Iconify.IconValue.md_report)
                         .colorRes(R.color.red)
                         .actionBarSize());
             } else {
                 holder.ivRecallFlag.setVisibility(View.VISIBLE);
-                holder.ivRecallFlag.setImageDrawable(new IconDrawable(context, Iconify.IconValue.md_report)
+                holder.ivRecallFlag.setImageDrawable(new IconDrawable(context, Iconify.IconValue.md_done)
                         .colorRes(R.color.red)
                         .actionBarSize());
             }
@@ -149,6 +154,7 @@ public class ConversationAdapter extends BaseAdapter {
         ImageView ivRecallFlag;
         @InjectView(R.id.tvMessageTime)
         TextView tvMessageTime;
+
         public ViewHolder(View base) {
             ButterKnife.inject(this, base);
         }

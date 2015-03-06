@@ -40,6 +40,17 @@ public class SQLFunctions {
     private static final String TABLE_REPLIES_TO_MESSAGE_ID = "repliesMessageId";
     private static final String TABLE_REPLIES_SUCCESS = "repliesSuccess";
 
+
+    private static final String TABLE_TIMELINE = "timeline";
+    private static final String TABLE_TIMELINE_LOCATION = "timelineLocation";
+    private static final String TABLE_TIMELINE_LOCATION_LAT = "timelineLocationLat";
+    private static final String TABLE_TIMELINE_LOCATION_LONG = "timelineLocationLong";
+    private static final String TABLE_TIMELINE_UNIX = "timelineTime";
+    private static final String TABLE_TIMELINE_IMAGE = "timelineImage";
+    private static final String TABLE_TIMELINE_VIDEO = "timelineVideo";
+    private static final String TABLE_TIMELINE_MESSAGE = "timelineMessage";
+    private static final String TABLE_TIMELINE_SUCCESS = "timelineSuccess";
+
     private static final int DATABASE_VERSION = 1;
 
     private DbHelper ourHelper;
@@ -60,6 +71,9 @@ public class SQLFunctions {
                     + TABLE_MESSAGES_MESSAGE_HEADER + " TEXT NOT NULL, " + TABLE_MESSAGES_MESSAGE_ID + " TEXT NOT NULL, " + TABLE_MESSAGES_RECALL_FLAG + " TEXT NOT NULL, " + TABLE_MESSAGES_READ + " TEXT NOT NULL, " + TABLE_MESSAGES_MINE + " TEXT NOT NULL, " + TABLE_MESSAGES_DEFINED_REPLIES + " TEXT NOT NULL);");
             db.execSQL("CREATE TABLE " + TABLE_REPLIES + " (" + GLOBAL_ROWID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + TABLE_REPLIES_TO_MESSAGE_ID + " TEXT NOT NULL, "
                     + TABLE_REPLIES_MESSAGE + " TEXT NOT NULL, " + TABLE_REPLIES_TIME + " TEXT NOT NULL, " + TABLE_REPLIES_SUCCESS + " TEXT NOT NULL);");
+            db.execSQL("CREATE TABLE " + TABLE_TIMELINE + " (" + GLOBAL_ROWID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + TABLE_TIMELINE_UNIX + " TEXT NOT NULL, "
+                    + TABLE_TIMELINE_MESSAGE + " TEXT NOT NULL, " + TABLE_TIMELINE_IMAGE + " TEXT NOT NULL, " + TABLE_TIMELINE_VIDEO + " TEXT NOT NULL, "
+                    + TABLE_TIMELINE_LOCATION + " TEXT NOT NULL, " + TABLE_TIMELINE_LOCATION_LAT + " TEXT NOT NULL, " + TABLE_TIMELINE_LOCATION_LONG + " TEXT NOT NULL, " + TABLE_TIMELINE_SUCCESS + " TEXT NOT NULL);");
         }
 
         @Override
@@ -86,6 +100,88 @@ public class SQLFunctions {
         } else {
             Log.e(TAG, "You did not open your database. Null error");
         }
+    }
+
+    public boolean setUploadStatus(String id, String status) {
+        String strFilter = GLOBAL_ROWID + "='" + id + "'";
+        ContentValues args = new ContentValues();
+        args.put(TABLE_TIMELINE_SUCCESS, status);
+        if (ourDatabase.update(TABLE_TIMELINE, args, strFilter, null) > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void deleteAllTimelineItem() {
+        ourDatabase.delete(TABLE_TIMELINE, null, null);
+    }
+
+    public boolean deleteTimelineItem(String id) {
+        return ourDatabase.delete(TABLE_TIMELINE, GLOBAL_ROWID + "=" + id, null) > 0;
+    }
+
+    /*public boolean setMessageRead(String messageId) {
+        String strFilter = Consts.MESSAGES_MESSAGE_ID + "='" + messageId + "'";
+        ContentValues args = new ContentValues();
+        args.put(TABLE_MESSAGES_READ, "1");
+        if (ourDatabase.update(TABLE_MESSAGES, args, strFilter, null) > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }*/
+
+    public ArrayList<Timeline> loadTimelineItems() {
+        ArrayList<Timeline> map = new ArrayList<Timeline>();
+        Cursor cursor = ourDatabase.rawQuery("SELECT * FROM " + TABLE_TIMELINE + " ORDER BY " + GLOBAL_ROWID + " DESC", null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                while (cursor.isAfterLast() == false) {
+                    try {
+                        Timeline t = new Timeline();
+                        t.setId(cursor.getString(cursor.getColumnIndex(GLOBAL_ROWID)));
+                        t.setUnixTime(cursor.getString(cursor.getColumnIndex(TABLE_TIMELINE_UNIX)));
+                        t.setMessage(cursor.getString(cursor.getColumnIndex(TABLE_TIMELINE_MESSAGE)));
+                        t.setImage(cursor.getString(cursor.getColumnIndex(TABLE_TIMELINE_IMAGE)));
+                        t.setVideo(cursor.getString(cursor.getColumnIndex(TABLE_TIMELINE_VIDEO)));
+                        t.setLocation(cursor.getString(cursor.getColumnIndex(TABLE_TIMELINE_LOCATION)));
+                        t.setLocationLat(cursor.getString(cursor.getColumnIndex(TABLE_TIMELINE_LOCATION_LAT)));
+                        t.setLocationLong(cursor.getString(cursor.getColumnIndex(TABLE_TIMELINE_LOCATION_LONG)));
+                        t.setSuccess(cursor.getString(cursor.getColumnIndex(TABLE_TIMELINE_SUCCESS)));
+                        map.add(t);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    cursor.moveToNext();
+                }
+            }
+        }
+        cursor.close();
+        return map;
+    }
+
+    public long insertTimelineItem(Timeline t) {
+        ContentValues cv = new ContentValues();
+        String sql = "SELECT * FROM " + TABLE_TIMELINE;
+        Cursor cursor = ourDatabase.rawQuery(sql, null);
+
+        Log.e(TAG, "New Timeline Item");
+        cv.put(TABLE_TIMELINE_UNIX, t.getUnixTime());
+        cv.put(TABLE_TIMELINE_MESSAGE, t.getMessage());
+        cv.put(TABLE_TIMELINE_IMAGE, t.getImage());
+        cv.put(TABLE_TIMELINE_VIDEO, t.getVideo());
+        cv.put(TABLE_TIMELINE_LOCATION, t.getLocation());
+        cv.put(TABLE_TIMELINE_LOCATION_LAT, t.getLocationLat());
+        cv.put(TABLE_TIMELINE_LOCATION_LONG, t.getLocationLong());
+        cv.put(TABLE_TIMELINE_SUCCESS, t.getSuccess());
+        try {
+            return ourDatabase.insert(TABLE_TIMELINE, null, cv);
+        } catch (Exception e) {
+            Log.e(TAG, "Error creating timeline item entry", e);
+        }
+        cursor.close();
+        return 0;
     }
 
     public long unixTime() {
@@ -210,6 +306,7 @@ public class SQLFunctions {
         cursor.close();
         return map;
     }
+
     public String getMessageHeader(String messageId) {
         String data = "";
         Cursor cursor = ourDatabase.rawQuery("SELECT * FROM " + TABLE_MESSAGES + " WHERE " + TABLE_MESSAGES_MESSAGE_ID + "= '" + messageId + "'", null);
@@ -221,6 +318,7 @@ public class SQLFunctions {
         cursor.close();
         return data;
     }
+
     public ArrayList<Message> loadMessages(String eventId) {
         ArrayList<Message> map = new ArrayList<>();
         Cursor cursor = ourDatabase.rawQuery("SELECT * FROM " + TABLE_MESSAGES + " WHERE " + TABLE_MESSAGES_EVENT_ID + "= '" + eventId + "' ORDER BY " + GLOBAL_ROWID + " ASC", null);
@@ -359,7 +457,8 @@ public class SQLFunctions {
         cursor.close();
     }
 
-    public void insertReply(String message, String messageId, String success) {
+    public int insertReply(String message, String messageId, String success) {
+        long id = 0;
         ContentValues cv = new ContentValues();
         Log.e(TAG, "New reply");
         cv.put(TABLE_REPLIES_MESSAGE, message);
@@ -367,10 +466,14 @@ public class SQLFunctions {
         cv.put(TABLE_REPLIES_TO_MESSAGE_ID, messageId);
         cv.put(TABLE_REPLIES_SUCCESS, success);
         try {
-            ourDatabase.insert(TABLE_REPLIES, null, cv);
+            id = ourDatabase.insert(TABLE_REPLIES, null, cv);
+            if (id < 0) {
+                id = 0;
+            }
         } catch (Exception e) {
             Log.e(TAG, "Error creating message entry", e);
         }
+        return (int) id;
     }
 
     public void updateReply(Message m, String success) {
@@ -379,5 +482,10 @@ public class SQLFunctions {
         ourDatabase.update(TABLE_REPLIES, args, GLOBAL_ROWID + "='" + m.getReplyId() + "' AND " + TABLE_REPLIES_TO_MESSAGE_ID + " = '" + m.getReplyToMessageId() + "'", null);
     }
 
+    public void updateReply(int id, String success) {
+        ContentValues args = new ContentValues();
+        args.put(TABLE_REPLIES_SUCCESS, success);
+        ourDatabase.update(TABLE_REPLIES, args, GLOBAL_ROWID + "='" + id + "'", null);
+    }
 
 }
