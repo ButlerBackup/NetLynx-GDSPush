@@ -77,9 +77,11 @@ public class MediaListActivity extends ActionBarActivity {
     }
 
     public void onEvent(String event) {
-        mTask = null;
-        mTask = new loadTimeline();
-        mTask.execute();
+        if (event.equals("UploadService")) {
+            mTask = null;
+            mTask = new loadTimeline();
+            mTask.execute();
+        }
     }
 
     @Override
@@ -118,6 +120,8 @@ public class MediaListActivity extends ActionBarActivity {
             SQLFunctions sql = new SQLFunctions(MediaListActivity.this);
             sql.open();
             data.clear();
+            data = null;
+            data = new ArrayList<>();
             data = sql.loadTimelineItems();
             sql.close();
             return null;

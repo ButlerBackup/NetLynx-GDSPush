@@ -21,6 +21,39 @@ public class WebAPIOutput {
     @SerializedName("UserGroup")
     private String verifyPinUserGroup;
 
+    @SerializedName("CreateMessage")
+    private int createMessage;
+
+    @SerializedName("PhotoUpload")
+    private int photoUpload;
+
+    @SerializedName("ReceiveMessage")
+    private int receiveMessage;
+
+    public int getCreateMessage() {
+        return createMessage;
+    }
+
+    public void setCreateMessage(int createMessage) {
+        this.createMessage = createMessage;
+    }
+
+    public int getPhotoUpload() {
+        return photoUpload;
+    }
+
+    public void setPhotoUpload(int photoUpload) {
+        this.photoUpload = photoUpload;
+    }
+
+    public int getReceiveMessage() {
+        return receiveMessage;
+    }
+
+    public void setReceiveMessage(int receiveMessage) {
+        this.receiveMessage = receiveMessage;
+    }
+
     public String getVerifyPinUsername() {
         return verifyPinUsername;
     }

@@ -25,6 +25,7 @@ import com.nextlynxtech.gdspushnotification.classes.SQLFunctions;
 import com.nextlynxtech.gdspushnotification.classes.Utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -51,9 +52,9 @@ public class ConversationActivity extends ActionBarActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
         if (getIntent().hasExtra("message")) {
-            Message m = (Message) getIntent().getSerializableExtra("message");
-            eventId = m.getEventId();
-            getSupportActionBar().setTitle(m.getEventName());
+            HashMap<String, String> m = (HashMap<String, String>) getIntent().getSerializableExtra("message");
+            eventId = Integer.parseInt(m.get("eventId"));
+            getSupportActionBar().setTitle(m.get("title"));
             mLoadConversation = null;
             mLoadConversation = new loadConversation();
             mLoadConversation.execute();

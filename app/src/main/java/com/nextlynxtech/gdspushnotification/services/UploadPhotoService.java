@@ -100,6 +100,8 @@ public class UploadPhotoService extends WakefulIntentService {
             try {
                 u = new Utils(UploadPhotoService.this);
                 updateNotification(id, "Compressing Photo");
+                //Bitmap tempPhotoToCompress = Utils.decodeSampledBitmapFromResource(photoFile);
+                //while (tempPhotoToCompress)
                 String bitmapString = u.convertBitmapToString(Utils.decodeSampledBitmapFromResource(photoFile));
                 Log.e("uploadPhotoService", "Compressing photo");
                 Log.e("uploadPhotoService", "Done compressing photo. Now uploading");
@@ -135,13 +137,14 @@ public class UploadPhotoService extends WakefulIntentService {
                         i.putExtra("image", true);
                         WakefulIntentService.sendWakefulWork(UploadPhotoService.this, i);
                         sql.close();
-                        EventBus.getDefault().post("UploadPhotoService");
+                        EventBus.getDefault().post("UploadService");
                         stopSelf();
                         // show notification
                     } else {
                         sql.setUploadStatus(dbItemId, "0");
                         showNotification(id, res.getStatusDescription(), res.getStatusDescription(), false, null);
                         sql.close();
+                        EventBus.getDefault().post("UploadService");
                         stopSelf();
                     }
                 } else {
@@ -149,6 +152,7 @@ public class UploadPhotoService extends WakefulIntentService {
                     Log.e("Result", "There were no response from server");
                     showNotification(id, "There were no response from server", "There were no response from server", false, null);
                     sql.close();
+                    EventBus.getDefault().post("UploadService");
                     stopSelf();
                 }
             } catch (Exception e) {
@@ -156,12 +160,14 @@ public class UploadPhotoService extends WakefulIntentService {
                 sql.setUploadStatus(dbItemId, "0");
                 showNotification(id, e.getMessage().toString(), e.getMessage().toString(), false, null);
                 sql.close();
+                EventBus.getDefault().post("UploadService");
                 stopSelf();
             }
             try {
                 sql.close();
+                EventBus.getDefault().post("UploadService");
             } catch (Exception e) {
-                
+                e.printStackTrace();
             }
         } else {
             Log.e("SERVICE", "NO PARAMETER");

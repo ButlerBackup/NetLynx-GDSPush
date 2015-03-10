@@ -13,6 +13,7 @@ import com.google.gson.Gson;
 import org.json.JSONArray;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class SQLFunctions {
     public static final String TAG = "GDSPush[SQLi]";
@@ -373,7 +374,7 @@ public class SQLFunctions {
         return map;
     }
 
-    public ArrayList<Message> loadEventMessages() {
+    public ArrayList<Message> loadEventMessagesUnused() {
         ArrayList<Message> map = new ArrayList<>();
         Cursor cursor = ourDatabase.rawQuery("SELECT * FROM " + TABLE_MESSAGES + " GROUP BY " + TABLE_MESSAGES_EVENT_ID + " ORDER BY " + GLOBAL_ROWID + " DESC", null);
         if (cursor != null) {
@@ -394,6 +395,31 @@ public class SQLFunctions {
                         m.setRead(cursor.getInt(cursor.getColumnIndex(TABLE_MESSAGES_READ)));
                         m.setMine(cursor.getInt(cursor.getColumnIndex(TABLE_MESSAGES_MINE)));
                         map.add(m);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    cursor.moveToNext();
+                }
+            }
+        }
+        cursor.close();
+        return map;
+    }
+
+    public ArrayList<HashMap<String, String>> loadEventMessages() {
+        ArrayList<HashMap<String, String>> map = new ArrayList<>();
+        Cursor cursor = ourDatabase.rawQuery("SELECT * FROM " + TABLE_MESSAGES + " GROUP BY " + TABLE_MESSAGES_EVENT_ID + " ORDER BY " + GLOBAL_ROWID + " DESC", null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                while (cursor.isAfterLast() == false) {
+                    try {
+                        HashMap<String, String> h = new HashMap<>();
+                        h.put("title", cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_EVENT_NAME)));
+                        h.put("message", cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_MESSAGE)));
+                        h.put("count", String.valueOf(getUnreadMessage(cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_EVENT_ID))))); //unreadcount
+                        h.put("eventId", cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_EVENT_ID)));
+                        h.put("read", cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_READ)));
+                        map.add(h);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

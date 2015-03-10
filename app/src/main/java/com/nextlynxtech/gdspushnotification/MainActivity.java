@@ -24,6 +24,7 @@ import com.nextlynxtech.gdspushnotification.classes.Utils;
 import com.nextlynxtech.gdspushnotification.services.MessageServices;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -38,7 +39,7 @@ public class MainActivity extends ActionBarActivity {
     getNewMessages mGetNewMessages;
     loadEventMessages mLoadEventMessages;
 
-    ArrayList<Message> data = new ArrayList<>();
+    ArrayList<HashMap<String, String>> data = new ArrayList<>();
 
     boolean stopLoading = false;
 
@@ -57,14 +58,19 @@ public class MainActivity extends ActionBarActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        mLoadEventMessages = null;
+        mLoadEventMessages = new loadEventMessages();
+        mLoadEventMessages.execute();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
         setSupportActionBar(toolbar);
-        mLoadEventMessages = null;
-        mLoadEventMessages = new loadEventMessages();
-        mLoadEventMessages.execute();
     }
 
     private class loadEventMessages extends AsyncTask<Void, Void, Void> {
@@ -90,7 +96,7 @@ public class MainActivity extends ActionBarActivity {
                             lvMain.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                                 @Override
                                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                                    Message m = data.get(position);
+                                    HashMap<String, String> m = data.get(position);
                                     startActivity(new Intent(MainActivity.this, ConversationActivity.class).putExtra("message", m));
                                 }
                             });
@@ -130,9 +136,14 @@ public class MainActivity extends ActionBarActivity {
                 new IconDrawable(this, Iconify.IconValue.md_refresh)
                         .colorRes(R.color.white)
                         .actionBarSize());
-        menu.findItem(R.id.menu_main_show_list).setIcon(new IconDrawable(this, Iconify.IconValue.md_list)
-                .colorRes(R.color.white)
-                .actionBarSize());
+        if (new Utils(MainActivity.this).isPhotoUpload()) {
+            menu.findItem(R.id.menu_main_show_list).setIcon(new IconDrawable(this, Iconify.IconValue.md_list)
+                    .colorRes(R.color.white)
+                    .actionBarSize());
+            menu.findItem(R.id.menu_main_show_list).setVisible(true);
+        } else {
+            menu.findItem(R.id.menu_main_show_list).setVisible(false);
+        }
         return true;
     }
 

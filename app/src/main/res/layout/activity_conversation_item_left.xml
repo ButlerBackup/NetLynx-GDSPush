@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:src="@drawable/conversation_left"
     android:layout_width="match_parent"
     android:paddingRight="30dp"
     android:paddingTop="4dp"

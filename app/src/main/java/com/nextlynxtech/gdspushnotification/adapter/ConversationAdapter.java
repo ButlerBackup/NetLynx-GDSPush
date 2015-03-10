@@ -105,14 +105,18 @@ public class ConversationAdapter extends BaseAdapter {
                 new AsyncTask<Integer, Void, Void>() {
                     @Override
                     protected Void doInBackground(Integer... params) {
-                        int messageId = params[0];
-                        GenericResult r = MainApplication.service.UpdateMessageReadStatus(new UpdateMessageRead("", "1234", messageId));
-                        Log.e("Result", r.getStatusCode());
-                        if (r.getStatusCode().equals("1") && r.getStatusDescription().equals("OK")) {
-                            SQLFunctions sql = new SQLFunctions(context);
-                            sql.open();
-                            sql.setMessageRead(String.valueOf(messageId));
-                            sql.close();
+                        try {
+                            int messageId = params[0];
+                            GenericResult r = MainApplication.service.UpdateMessageReadStatus(new UpdateMessageRead("", "1234", messageId));
+                            Log.e("Result", r.getStatusCode());
+                            if (r.getStatusCode().equals("1") && r.getStatusDescription().equals("OK")) {
+                                SQLFunctions sql = new SQLFunctions(context);
+                                sql.open();
+                                sql.setMessageRead(String.valueOf(messageId));
+                                sql.close();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
                         return null;
                     }

@@ -20,6 +20,7 @@
         android:layout_alignStart="@+id/textView" />
 
     <com.nextlynxtech.gdspushnotification.classes.TextViewPlus
+        app:font="roboto.ttf"
         android:textColor="#000"
         android:id="@+id/textView"
         android:layout_width="wrap_content"
@@ -58,18 +59,17 @@
         android:id="@+id/bVerifyPin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/etPin"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
         android:text="Verify PIN"
         android:textColor="#000"
         app:buttonColor="@color/fbutton_default_color"
         app:cornerRadius="0dp"
         app:shadowColor="@color/fbutton_default_shadow_color"
         app:shadowEnabled="true"
-        app:shadowHeight="8dp" />
+        app:shadowHeight="4dp"
+        android:layout_alignTop="@+id/etPin"
+        android:layout_marginTop="111dp"
+        android:layout_alignRight="@+id/textView"
+        android:layout_alignEnd="@+id/textView"
+        android:layout_alignLeft="@+id/etPin"
+        android:layout_alignStart="@+id/etPin" />
 </RelativeLayout>

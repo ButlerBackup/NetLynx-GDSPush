@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
@@ -136,7 +137,8 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
             Log.e("File Size", imgFile.length() + "");
             Log.e("File Directory", imgFile.getAbsolutePath().toString());
             // Toast.makeText(NewTimelineItemPhotoActivity.this, imgFile.getAbsolutePath().toString() + "\n" + imgFile.getName().toString(), Toast.LENGTH_LONG).show();
-            croppedImage = Utils.decodeSampledBitmapFromResource(imgFile);
+            //croppedImage = Utils.decodeSampledBitmapFromResource(imgFile);
+            croppedImage = new Utils(NewTimelineItemPhotoActivity.this).createResizeBitmap(imgFile);
             ivNewTimelineImage.setImageBitmap(croppedImage);
         } else {
             Toast.makeText(NewTimelineItemPhotoActivity.this, "No image found", Toast.LENGTH_LONG).show();
@@ -279,6 +281,13 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
             unregisterReceiver(lftBroadcastReceiver);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private class tempCompressImageToShow extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            return null;
         }
     }
 }

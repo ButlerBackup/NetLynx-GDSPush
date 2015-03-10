@@ -119,6 +119,9 @@ public class RegisterActivity extends ActionBarActivity {
                             new Utils(RegisterActivity.this).storeSecurePreferenceValue(Consts.REGISTER_MOBILE_NUMBER, etPhoneNumber.getText().toString());
                             new Utils(RegisterActivity.this).storeSecurePreferenceValue(Consts.REGISTER_LOGIN_ID, etLoginId.getText().toString());
                             new Utils(RegisterActivity.this).storeSecurePreferenceValue(Consts.REGISTER_PASSWORD, etPassword.getText().toString());
+                            new Utils(RegisterActivity.this).storeSecurePreferenceValue(Consts.REGISTER_CREATE_MESSAGE, String.valueOf(res.getCreateMessage()));
+                            new Utils(RegisterActivity.this).storeSecurePreferenceValue(Consts.REGISTER_PHOTO_UPLOAD, String.valueOf(res.getPhotoUpload()));
+                            new Utils(RegisterActivity.this).storeSecurePreferenceValue(Consts.REGISTER_RECEIVE_MESSAGE, String.valueOf(res.getReceiveMessage()));
                             startActivity(new Intent(RegisterActivity.this, VerifyPinActivity.class));
                             finish();
                         } else {

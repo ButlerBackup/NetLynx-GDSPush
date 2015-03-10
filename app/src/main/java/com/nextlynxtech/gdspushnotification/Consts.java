@@ -30,6 +30,9 @@ public class Consts {
     public static final String REGISTER_PASSWORD = "password";
     public static final String REGISTER_UDID = "udid";
     public static final String REGISTER_USER_GROUP = "group";
+    public static final String REGISTER_CREATE_MESSAGE = "CreateMessage";
+    public static final String REGISTER_PHOTO_UPLOAD = "PhotoUpload";
+    public static final String REGISTER_RECEIVE_MESSAGE = "ReceiveMessage";
 
     public static final String SETTINGS_RESTART = "restart";
 

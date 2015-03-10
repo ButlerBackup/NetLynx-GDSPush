@@ -178,6 +178,15 @@ public class Utils {
         return BitmapFactory.decodeFile(file.getAbsolutePath().toString(), options);
     }
 
+    public Bitmap createResizeBitmap(File file) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(file.getAbsolutePath().toString(), options);
+        int imageHeight = options.outHeight / 2;
+        int imageWidth = options.outWidth / 2;
+        return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(file.getAbsolutePath().toString()),imageWidth, imageHeight, true);
+    }
+
     public void saveImageToFolder(Bitmap bitmap, String name) {
         Log.e("Creating Thumbnail", "Creating Thumbnail");
 
@@ -261,5 +270,13 @@ public class Utils {
             type = "video/mp4";
         }
         MediaScannerConnection.scanFile(context, new String[]{file.getAbsolutePath().toString()}, new String[]{type}, null);
+    }
+
+    public boolean isPhotoUpload() {
+        SecurePreferences sp = new SecurePreferences(context);
+        if (sp.getString(Consts.REGISTER_PHOTO_UPLOAD, "0").equals("1")) {
+            return true;
+        }
+        return false;
     }
 }

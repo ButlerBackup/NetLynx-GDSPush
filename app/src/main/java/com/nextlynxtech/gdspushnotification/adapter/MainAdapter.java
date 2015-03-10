@@ -1,6 +1,7 @@
 package com.nextlynxtech.gdspushnotification.adapter;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,9 +9,9 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.nextlynxtech.gdspushnotification.R;
-import com.nextlynxtech.gdspushnotification.classes.Message;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -20,10 +21,10 @@ import butterknife.InjectView;
  */
 public class MainAdapter extends BaseAdapter {
     Context context;
-    ArrayList<Message> data = new ArrayList<>();
+    ArrayList<HashMap<String, String>> data = new ArrayList<>();
     private LayoutInflater mLayoutInflater = null;
 
-    public MainAdapter(Context context, ArrayList<Message> data) {
+    public MainAdapter(Context context, ArrayList<HashMap<String, String>> data) {
         this.context = context;
         this.data = data;
         mLayoutInflater = (LayoutInflater) context
@@ -36,7 +37,7 @@ public class MainAdapter extends BaseAdapter {
     }
 
     @Override
-    public Message getItem(int position) {
+    public HashMap<String, String> getItem(int position) {
         return data.get(position);
     }
 
@@ -54,8 +55,16 @@ public class MainAdapter extends BaseAdapter {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        holder.tvEventName.setText(data.get(position).getEventName());
-        holder.tvMessage.setText(data.get(position).getMessage());
+        HashMap<String, String> item = data.get(position);
+        holder.tvEventName.setText(item.get("title"));
+        holder.tvMessage.setText(item.get("message"));
+        if (Integer.parseInt(item.get("count")) > 0) {
+            holder.tvMessage.setTypeface(null, Typeface.BOLD);
+            holder.tvEventName.setTypeface(null, Typeface.BOLD);
+        } else {
+            holder.tvMessage.setTypeface(null, Typeface.NORMAL);
+            holder.tvEventName.setTypeface(null, Typeface.NORMAL);
+        }
         return convertView;
     }
 
