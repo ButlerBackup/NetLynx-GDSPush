@@ -1,5 +1,6 @@
 package com.nextlynxtech.gdspushnotification;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -17,18 +18,20 @@ import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.commonsware.cwac.wakeful.WakefulIntentService;
 import com.nextlynxtech.gdspushnotification.adapter.ConversationAdapter;
 import com.nextlynxtech.gdspushnotification.classes.GenericResult;
 import com.nextlynxtech.gdspushnotification.classes.Message;
 import com.nextlynxtech.gdspushnotification.classes.MessageReply;
 import com.nextlynxtech.gdspushnotification.classes.SQLFunctions;
-import com.nextlynxtech.gdspushnotification.classes.Utils;
+import com.nextlynxtech.gdspushnotification.services.SendReplyService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import de.greenrobot.event.EventBus;
 
 public class ConversationActivity extends ActionBarActivity {
     @InjectView(R.id.lvConversation)
@@ -41,7 +44,7 @@ public class ConversationActivity extends ActionBarActivity {
     ArrayList<Message> data = new ArrayList<>();
     ConversationAdapter adapter;
     loadConversation mLoadConversation;
-
+    int index = 0, top = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,6 +54,7 @@ public class ConversationActivity extends ActionBarActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
+        EventBus.getDefault().register(ConversationActivity.this);
         if (getIntent().hasExtra("message")) {
             HashMap<String, String> m = (HashMap<String, String>) getIntent().getSerializableExtra("message");
             eventId = Integer.parseInt(m.get("eventId"));
@@ -93,14 +97,18 @@ public class ConversationActivity extends ActionBarActivity {
                     if (!isCancelled()) {
                         if (data.size() > 0) {
                             adapter = new ConversationAdapter(ConversationActivity.this, data);
+                            index = lvConversation.getFirstVisiblePosition();
+                            View v = lvConversation.getChildAt(0);
+                            top = (v == null) ? 0 : (v.getTop() - lvConversation.getPaddingTop());
                             lvConversation.setAdapter(adapter);
+                            lvConversation.setSelectionFromTop(index, top);
                             lvConversation.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                                 @Override
                                 public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
                                     Message m = data.get(position);
                                     final String messageId = String.valueOf(m.getMessageId());
                                     CharSequence[] replies = null;
-                                    if (m.getMine() == 0 && m.getRecallFlag() == 1) {
+                                    if (m.getMine() == 0 && (m.getRecallFlag() == 1 || m.getRecallFlag() == 2)) {
                                         final ArrayList<String> r = new ArrayList<>();
                                         if (m.getReplies() != null && m.getReplies().size() > 0) {
                                             for (String s : m.getReplies()) {
@@ -126,7 +134,7 @@ public class ConversationActivity extends ActionBarActivity {
                                         } else {
                                             showCustomReply(messageId);
                                         }
-                                    } else if (m.getMine() == 1 && m.getReplySuccess() == 0) {
+                                    } else if (m.getMine() == 1 && m.getReplySuccess() != 1) {
                                         new MaterialDialog.Builder(ConversationActivity.this).content("Resend message?").title("Resend").positiveText("Yes").negativeText("No").cancelable(false).callback(new MaterialDialog.ButtonCallback() {
                                             @Override
                                             public void onPositive(MaterialDialog dialog) {
@@ -191,6 +199,9 @@ public class ConversationActivity extends ActionBarActivity {
         if (mLoadConversation != null && mLoadConversation.getStatus() != AsyncTask.Status.FINISHED) {
             mLoadConversation.cancel(true);
         }
+        if (EventBus.getDefault().isRegistered(ConversationActivity.this)) {
+            EventBus.getDefault().unregister(ConversationActivity.this);
+        }
     }
 
     private class resendReply extends AsyncTask<Message, Void, Void> {
@@ -227,6 +238,13 @@ public class ConversationActivity extends ActionBarActivity {
         }
     }
 
+    public void onEvent(String data) {
+        Log.e("ConversationActivity", data);
+        if (data.equals("SendReplyService")) {
+            new loadConversation().execute();
+        }
+    }
+
     private class sendReplyToMessage extends AsyncTask<String, Void, Void> {
         GenericResult m = null;
         String messageId = "", messageContent = "";
@@ -246,12 +264,6 @@ public class ConversationActivity extends ActionBarActivity {
                     new loadConversation().execute();
                 }
             });
-            try {
-                m = MainApplication.service.UpdateMessageReply(new MessageReply("", new Utils(ConversationActivity.this).getUnique(), Integer.parseInt(messageId), messageContent));
-                Log.e("Result", m.getStatusDescription() + "|" + m.getStatusCode());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
             return null;
         }
 
@@ -261,15 +273,10 @@ public class ConversationActivity extends ActionBarActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    SQLFunctions sql = new SQLFunctions(ConversationActivity.this);
-                    sql.open();
-                    if (m != null && m.getStatusDescription().equals("OK") && m.getStatusCode().equals("1")) {
-                        sql.updateReply(id, "1");
-                    } else {
-                        sql.updateReply(id, "0");
-                    }
-                    sql.close();
-                    new loadConversation().execute();
+                    Intent i = new Intent(ConversationActivity.this, SendReplyService.class);
+                    i.putExtra("messageId", id);
+                    i.putExtra("messageContent", messageId);
+                    WakefulIntentService.sendWakefulWork(ConversationActivity.this, i);
                 }
             });
         }

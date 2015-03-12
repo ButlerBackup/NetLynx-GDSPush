@@ -9,6 +9,7 @@ import com.nextlynxtech.gdspushnotification.classes.Message;
 import com.nextlynxtech.gdspushnotification.classes.NewMessageCalls;
 import com.nextlynxtech.gdspushnotification.classes.NewMessageResult;
 import com.nextlynxtech.gdspushnotification.classes.SQLFunctions;
+import com.nextlynxtech.gdspushnotification.classes.Utils;
 
 import de.greenrobot.event.EventBus;
 
@@ -20,7 +21,7 @@ public class MessageServices extends WakefulIntentService {
     @Override
     protected void doWakefulWork(Intent intent) {
         try {
-            NewMessageResult m = MainApplication.service.GetNewMessages(new NewMessageCalls("12", "1234"));
+            NewMessageResult m = MainApplication.service.GetNewMessages(new NewMessageCalls("", new Utils(MessageServices.this).getUnique()));
             Log.e("SIZE", m.getMessages().size() + " messages");
             if (m.getMessages().size() > 0) {
                 SQLFunctions sql = new SQLFunctions(MessageServices.this);
@@ -33,6 +34,6 @@ public class MessageServices extends WakefulIntentService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        EventBus.getDefault().post("done");
+        EventBus.getDefault().post("MessageServices");
     }
 }

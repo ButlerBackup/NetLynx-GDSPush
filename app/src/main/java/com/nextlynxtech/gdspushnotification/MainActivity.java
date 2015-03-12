@@ -16,9 +16,6 @@ import com.commonsware.cwac.wakeful.WakefulIntentService;
 import com.malinskiy.materialicons.IconDrawable;
 import com.malinskiy.materialicons.Iconify;
 import com.nextlynxtech.gdspushnotification.adapter.MainAdapter;
-import com.nextlynxtech.gdspushnotification.classes.Message;
-import com.nextlynxtech.gdspushnotification.classes.NewMessageCalls;
-import com.nextlynxtech.gdspushnotification.classes.NewMessageResult;
 import com.nextlynxtech.gdspushnotification.classes.SQLFunctions;
 import com.nextlynxtech.gdspushnotification.classes.Utils;
 import com.nextlynxtech.gdspushnotification.services.MessageServices;
@@ -36,7 +33,6 @@ public class MainActivity extends ActionBarActivity {
     ListView lvMain;
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
-    getNewMessages mGetNewMessages;
     loadEventMessages mLoadEventMessages;
 
     ArrayList<HashMap<String, String>> data = new ArrayList<>();
@@ -49,9 +45,6 @@ public class MainActivity extends ActionBarActivity {
             EventBus.getDefault().unregister(MainActivity.this);
         }
         super.onPause();
-        if (mGetNewMessages != null && mGetNewMessages.getStatus() != AsyncTask.Status.FINISHED) {
-            mGetNewMessages.cancel(true);
-        }
         if (mLoadEventMessages != null && mLoadEventMessages.getStatus() != AsyncTask.Status.FINISHED) {
             mLoadEventMessages.cancel(true);
         }
@@ -60,6 +53,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        EventBus.getDefault().register(MainActivity.this);
         mLoadEventMessages = null;
         mLoadEventMessages = new loadEventMessages();
         mLoadEventMessages.execute();
@@ -103,7 +97,6 @@ public class MainActivity extends ActionBarActivity {
                         }
                         if (!stopLoading) {
                             WakefulIntentService.sendWakefulWork(MainActivity.this, MessageServices.class);
-                            EventBus.getDefault().register(MainActivity.this);
                         }
                     }
                 }
@@ -112,17 +105,17 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void onEvent(String data) {
-        Log.e("EVENT BUS", "I GOT SOMETHING. " + data);
-        stopLoading = true;
-        EventBus.getDefault().unregister(MainActivity.this);
-        mLoadEventMessages = null;
-        mLoadEventMessages = new loadEventMessages();
-        mLoadEventMessages.execute();
+        Log.e("MainActivity", data);
+        if (data.equals("MessageServices")) {
+            stopLoading = true;
+            mLoadEventMessages = null;
+            mLoadEventMessages = new loadEventMessages();
+            mLoadEventMessages.execute();
+        }
     }
 
     @Override
     protected void onDestroy() {
-        // Unregister
         if (EventBus.getDefault().isRegistered(MainActivity.this)) {
             EventBus.getDefault().unregister(MainActivity.this);
         }
@@ -137,7 +130,7 @@ public class MainActivity extends ActionBarActivity {
                         .colorRes(R.color.white)
                         .actionBarSize());
         if (new Utils(MainActivity.this).isPhotoUpload()) {
-            menu.findItem(R.id.menu_main_show_list).setIcon(new IconDrawable(this, Iconify.IconValue.md_list)
+            menu.findItem(R.id.menu_main_show_list).setIcon(new IconDrawable(this, Iconify.IconValue.md_photo)
                     .colorRes(R.color.white)
                     .actionBarSize());
             menu.findItem(R.id.menu_main_show_list).setVisible(true);
@@ -150,47 +143,15 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.menu_main_refresh) {
-            mGetNewMessages = null;
-            mGetNewMessages = new getNewMessages();
-            mGetNewMessages.execute();
-            return true;
-        } else if (id == R.id.menu_main_show_list) {
-            startActivity(new Intent(MainActivity.this, MediaListActivity.class));
+        switch (id) {
+            case R.id.menu_main_refresh:
+                WakefulIntentService.sendWakefulWork(MainActivity.this, MessageServices.class);
+                break;
+            case R.id.menu_main_show_list:
+                startActivity(new Intent(MainActivity.this, MediaListActivity.class));
+                break;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private class getNewMessages extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected Void doInBackground(Void... params) {
-            try {
-                NewMessageResult m = MainApplication.service.GetNewMessages(new NewMessageCalls("12", new Utils(MainActivity.this).getUnique()));
-                Log.e("SIZE", m.getMessages().size() + " messages");
-                if (m.getMessages().size() > 0) {
-                    SQLFunctions sql = new SQLFunctions(MainActivity.this);
-                    sql.open();
-                    for (Message message : m.getMessages()) {
-                        sql.insertMessage(message, 0);
-                    }
-                    sql.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            if (!isCancelled()) {
-                stopLoading = true;
-                mLoadEventMessages = null;
-                mLoadEventMessages = new loadEventMessages();
-                mLoadEventMessages.execute();
-            }
-        }
     }
 
 }

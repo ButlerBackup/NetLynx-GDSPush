@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.malinskiy.materialicons.IconDrawable;
 import com.malinskiy.materialicons.Iconify;
@@ -18,6 +19,7 @@ import com.nextlynxtech.gdspushnotification.classes.GenericResult;
 import com.nextlynxtech.gdspushnotification.classes.Message;
 import com.nextlynxtech.gdspushnotification.classes.SQLFunctions;
 import com.nextlynxtech.gdspushnotification.classes.UpdateMessageRead;
+import com.nextlynxtech.gdspushnotification.classes.Utils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -87,13 +89,56 @@ public class ConversationAdapter extends BaseAdapter {
 
         Message m = data.get(position);
         if (type == TYPE_LEFT) {
+            switch (m.getColor()) {
+                case 0:
+                    holder.tvMessageHeader.setTextColor(context.getResources().getColor(R.color.black));
+                    break;
+                case 1:
+                    holder.tvMessageHeader.setTextColor(context.getResources().getColor(R.color.red));
+                    break;
+                case 2:
+                    holder.tvMessageHeader.setTextColor(context.getResources().getColor(R.color.green));
+                    break;
+                case 3:
+                    holder.tvMessageHeader.setTextColor(context.getResources().getColor(R.color.yellow));
+                    break;
+                case 4:
+                    holder.tvMessageHeader.setTextColor(context.getResources().getColor(R.color.blue));
+                    break;
+                case 5:
+                    holder.tvMessageHeader.setTextColor(context.getResources().getColor(R.color.magenta));
+                    break;
+                case 6:
+                    holder.tvMessageHeader.setTextColor(context.getResources().getColor(R.color.cyan_500));
+                    break;
+                case 7:
+                    holder.tvMessageHeader.setTextColor(context.getResources().getColor(R.color.white));
+                    break;
+            }
             holder.tvMessage.setText(m.getMessage());
             holder.tvMessageHeader.setText(m.getMessageHeader());
             if (m.getRecallFlag() == 1) {
                 holder.ivRecallFlag.setVisibility(View.VISIBLE);
-                holder.ivRecallFlag.setImageDrawable(new IconDrawable(context, Iconify.IconValue.md_report)
+                holder.ivRecallFlag.setImageDrawable(new IconDrawable(context, Iconify.IconValue.md_warning)
                         .colorRes(R.color.red)
                         .actionBarSize());
+                holder.ivRecallFlag.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Toast.makeText(context, "This message needs your reply confirmation.", Toast.LENGTH_LONG).show();
+                    }
+                });
+            } else if (m.getRecallFlag() == 2) {
+                holder.ivRecallFlag.setVisibility(View.VISIBLE);
+                holder.ivRecallFlag.setImageDrawable(new IconDrawable(context, Iconify.IconValue.md_done_all)
+                        .colorRes(R.color.green)
+                        .actionBarSize());
+                holder.ivRecallFlag.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Toast.makeText(context, "You have replied to this message.", Toast.LENGTH_LONG).show();
+                    }
+                });
             } else {
                 holder.ivRecallFlag.setVisibility(View.GONE);
             }
@@ -107,7 +152,7 @@ public class ConversationAdapter extends BaseAdapter {
                     protected Void doInBackground(Integer... params) {
                         try {
                             int messageId = params[0];
-                            GenericResult r = MainApplication.service.UpdateMessageReadStatus(new UpdateMessageRead("", "1234", messageId));
+                            GenericResult r = MainApplication.service.UpdateMessageReadStatus(new UpdateMessageRead("", new Utils(context).getUnique(), messageId));
                             Log.e("Result", r.getStatusCode());
                             if (r.getStatusCode().equals("1") && r.getStatusDescription().equals("OK")) {
                                 SQLFunctions sql = new SQLFunctions(context);
@@ -132,18 +177,36 @@ public class ConversationAdapter extends BaseAdapter {
             if (m.getReplySuccess() == 1) {
                 holder.ivRecallFlag.setVisibility(View.VISIBLE);
                 holder.ivRecallFlag.setImageDrawable(new IconDrawable(context, Iconify.IconValue.md_done_all)
-                        .colorRes(R.color.red)
+                        .colorRes(R.color.green)
                         .actionBarSize());
+                holder.ivRecallFlag.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Toast.makeText(context, "Reply successfully sent.", Toast.LENGTH_LONG).show();
+                    }
+                });
             } else if (m.getReplySuccess() == 2) { //loading
                 holder.ivRecallFlag.setVisibility(View.VISIBLE);
                 holder.ivRecallFlag.setImageDrawable(new IconDrawable(context, Iconify.IconValue.md_report)
                         .colorRes(R.color.red)
                         .actionBarSize());
+                holder.ivRecallFlag.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Toast.makeText(context, "Reply not sent at all.", Toast.LENGTH_LONG).show();
+                    }
+                });
             } else {
                 holder.ivRecallFlag.setVisibility(View.VISIBLE);
                 holder.ivRecallFlag.setImageDrawable(new IconDrawable(context, Iconify.IconValue.md_done)
-                        .colorRes(R.color.red)
+                        .colorRes(R.color.blue)
                         .actionBarSize());
+                holder.ivRecallFlag.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Toast.makeText(context, "Reply is waiting for server response.", Toast.LENGTH_LONG).show();
+                    }
+                });
             }
         }
         return convertView;

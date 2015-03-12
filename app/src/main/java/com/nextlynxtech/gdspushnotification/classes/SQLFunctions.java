@@ -283,7 +283,7 @@ public class SQLFunctions {
     public ArrayList<Message> loadReplies(String messageId) {
         ArrayList<Message> map = new ArrayList<>();
         String header = getMessageHeader(messageId);
-        Cursor cursor = ourDatabase.rawQuery("SELECT * FROM " + TABLE_REPLIES + " WHERE " + TABLE_REPLIES_TO_MESSAGE_ID + "= '" + messageId + "' ORDER BY " + GLOBAL_ROWID + " ASC", null);
+        Cursor cursor = ourDatabase.rawQuery("SELECT * FROM " + TABLE_REPLIES + " WHERE " + TABLE_REPLIES_TO_MESSAGE_ID + "= '" + messageId + "' ORDER BY " + GLOBAL_ROWID + " DESC", null);
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 while (cursor.isAfterLast() == false) {
@@ -360,6 +360,7 @@ public class SQLFunctions {
                             if (repliesExist(String.valueOf(messageId))) {
                                 Log.e("SQL", "User has replies for this message.");
                                 map.addAll(loadReplies(String.valueOf(messageId)));
+                                m.setRecallFlag(2); // got replies. change icon
                             }
                         }
                     } catch (Exception e) {

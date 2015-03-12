@@ -61,7 +61,7 @@
         <service android:name=".services.UploadPhotoService" />
         <service android:name=".services.UploadVideoService" />
         <service android:name=".services.MessageServices" />
-
+        <service android:name=".services.SendReplyService" />
         <service android:name="com.littlefluffytoys.littlefluffylocationlibrary.LocationBroadcastService" />
 
         <receiver
