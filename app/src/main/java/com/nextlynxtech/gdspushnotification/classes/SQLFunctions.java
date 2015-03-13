@@ -375,27 +375,19 @@ public class SQLFunctions {
         return map;
     }
 
-    public ArrayList<Message> loadEventMessagesUnused() {
-        ArrayList<Message> map = new ArrayList<>();
-        Cursor cursor = ourDatabase.rawQuery("SELECT * FROM " + TABLE_MESSAGES + " GROUP BY " + TABLE_MESSAGES_EVENT_ID + " ORDER BY " + GLOBAL_ROWID + " DESC", null);
+    public boolean isUnReplyMessage(String eventId) {
+        boolean res = false;
+        Cursor cursor = ourDatabase.rawQuery("SELECT * FROM " + TABLE_MESSAGES + " WHERE " + TABLE_MESSAGES_EVENT_ID + " = '" + eventId + "'", null);
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 while (cursor.isAfterLast() == false) {
                     try {
-                        Message m = new Message();
-                        m.setColor(cursor.getInt(cursor.getColumnIndex(TABLE_MESSAGES_COLOR)));
-                        m.setEventDate(cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_EVENT_DATE)));
-                        m.setEventName(cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_EVENT_NAME)));
-                        m.setEventStatus(cursor.getInt(cursor.getColumnIndex(TABLE_MESSAGES_EVENT_STATUS)));
-                        m.setEventId(cursor.getInt(cursor.getColumnIndex(TABLE_MESSAGES_EVENT_ID)));
-                        m.setMessage(cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_MESSAGE)));
-                        m.setMessageDate(cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_MESSAGE_DATE)));
-                        m.setMessageHeader(cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_MESSAGE_HEADER)));
-                        m.setMessageId(cursor.getInt(cursor.getColumnIndex(TABLE_MESSAGES_MESSAGE_ID)));
-                        m.setRecallFlag(cursor.getInt(cursor.getColumnIndex(TABLE_MESSAGES_RECALL_FLAG)));
-                        m.setRead(cursor.getInt(cursor.getColumnIndex(TABLE_MESSAGES_READ)));
-                        m.setMine(cursor.getInt(cursor.getColumnIndex(TABLE_MESSAGES_MINE)));
-                        map.add(m);
+                        String messageId = cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_MESSAGE_ID));
+                        String needsReply = cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_RECALL_FLAG));
+                        if (needsReply.equals("1") && getReplyToMessageCount(messageId) < 1) { // if needs reply but no reply
+                            res = true;
+                            break;
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -404,7 +396,7 @@ public class SQLFunctions {
             }
         }
         cursor.close();
-        return map;
+        return res;
     }
 
     public ArrayList<HashMap<String, String>> loadEventMessages() {
@@ -420,6 +412,7 @@ public class SQLFunctions {
                         h.put("count", String.valueOf(getUnreadMessage(cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_EVENT_ID))))); //unreadcount
                         h.put("eventId", cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_EVENT_ID)));
                         h.put("read", cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_READ)));
+                        h.put("notification", isUnReplyMessage(cursor.getString(cursor.getColumnIndex(TABLE_MESSAGES_EVENT_ID))) ? "1" : "0");
                         map.add(h);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -430,6 +423,20 @@ public class SQLFunctions {
         }
         cursor.close();
         return map;
+    }
+
+    public int getReplyToMessageCount(String messageId) {
+        int count = 0;
+        try {
+            Cursor mCount = ourDatabase.rawQuery("SELECT COUNT(*) FROM " + TABLE_REPLIES + " WHERE " + TABLE_REPLIES_TO_MESSAGE_ID + " = '" + messageId + "'",
+                    null);
+            mCount.moveToFirst();
+            count = mCount.getInt(0);
+            mCount.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return count;
     }
 
     public int getUnreadMessage(String eventId) {

@@ -6,8 +6,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.malinskiy.materialicons.IconDrawable;
+import com.malinskiy.materialicons.Iconify;
 import com.nextlynxtech.gdspushnotification.R;
 
 import java.util.ArrayList;
@@ -65,6 +68,14 @@ public class MainAdapter extends BaseAdapter {
             holder.tvMessage.setTypeface(null, Typeface.NORMAL);
             holder.tvEventName.setTypeface(null, Typeface.NORMAL);
         }
+        if (item.get("notification").equals("1")) {
+            holder.ivNotification.setVisibility(View.VISIBLE);
+            holder.ivNotification.setImageDrawable(new IconDrawable(context, Iconify.IconValue.md_warning)
+                    .colorRes(R.color.red)
+                    .actionBarSize());
+        } else {
+            holder.ivNotification.setVisibility(View.GONE);
+        }
         return convertView;
     }
 
@@ -74,6 +85,9 @@ public class MainAdapter extends BaseAdapter {
 
         @InjectView(R.id.tvMessage)
         TextView tvMessage;
+
+        @InjectView(R.id.ivNotification)
+        ImageView ivNotification;
 
         public ViewHolder(View base) {
             ButterKnife.inject(this, base);
