@@ -74,6 +74,7 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
     Timeline timelineResent;
     uploadVideo mTask;
 
+    //When activity is called
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,18 +83,21 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
+        //Gets video filepath from gallery
         if (getIntent().hasExtra(Consts.VIDEO_CAMERA_PASS_EXTRAS)) {
             videoFileName = getIntent().getStringExtra(Consts.VIDEO_CAMERA_PASS_EXTRAS);
             Uri uriPath = Uri.parse(videoFileName);
             videoFile = new File(uriPath.getPath());
             Log.e("FILENAME", uriPath.getPath());
             loadVideoFile();
+            //Gets video from resend
         } else if (getIntent().hasExtra(Consts.TIMELINE_ITEM_SELECTED_FROM_MAINACTIVITY)) {
             timelineResent = (Timeline) getIntent().getSerializableExtra(Consts.TIMELINE_ITEM_SELECTED_FROM_MAINACTIVITY);
             videoFileName = timelineResent.getVideo();
             videoFile = new File(new Utils(NewTimelineItemVideoActivity.this).createFolder(), videoFileName);
             isResendingVideo = true;
             loadVideoFile();
+            //Copy video and load after taking
         } else if (getIntent().hasExtra(Consts.VIDEO_CAMERA_PASS_EXTRAS_PURE)) {
             String currentTime = System.currentTimeMillis() + "";
             videoFileName = getIntent().getStringExtra(Consts.VIDEO_CAMERA_PASS_EXTRAS_PURE);
@@ -113,22 +117,24 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
         } else {
             finish();
         }
-        if (!isResendingVideo) {
+        if (!isResendingVideo) { //If not resending, get location
             tvGetLocation.setText(Consts.LOCATION_LOADING);
             LocationLibrary.forceLocationUpdate(NewTimelineItemVideoActivity.this);
             refreshLocation(new LocationInfo(NewTimelineItemVideoActivity.this));
             final IntentFilter lftIntentFilter = new IntentFilter(LocationLibraryConstants.getLocationChangedPeriodicBroadcastAction());
             registerReceiver(lftBroadcastReceiver, lftIntentFilter);
         } else {
-            etDescription.setText(timelineResent.getMessage());
+            etDescription.setText(timelineResent.getMessage()); //Resend text from timeline
             //Log.e("HERE", timelineResent.getLocation().toString());
             //Toast.makeText(NewTimelineItemPhotoActivity.this, timelineResent.getLocation().toString(), Toast.LENGTH_LONG).show();
+            //If there is no location previously, it will attempt to get location again
             if (timelineResent.getLocation() != null && timelineResent.getLocation().length() > 0) {
                 locationName = timelineResent.getLocation();
                 tvGetLocation.setText(locationName);
             } else {
                 tvGetLocation.setText(Consts.LOCATION_ERROR);
             }
+            //Display location
             if (timelineResent.getLocationLat() != null && timelineResent.getLocationLat().length() > 0 && timelineResent.getLocationLong() != null && timelineResent.getLocationLong().length() > 0) {
                 if (currentLocation == null) {
                     currentLocation = new LocationInfo(NewTimelineItemVideoActivity.this);
@@ -139,6 +145,7 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
         }
     }
 
+    //Play video file
     private void loadVideoFile() {
         if (videoFile.exists()) {
             Log.e("File Size", videoFile.length() + "");
@@ -146,7 +153,7 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
             ivNewTimelineVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
-                    mp.setLooping(true);
+                    mp.setLooping(true); //Enable looping of video played
                 }
             });
             ivNewTimelineVideo.setVideoURI(Uri.parse(videoFile.getAbsolutePath().toString()));
@@ -156,6 +163,7 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
         }
     }
 
+    //Get location
     @OnClick(R.id.tvGetLocation)
     public void refreshLocation() {
         Log.e("Refreshing", "Refreshing location");
@@ -165,6 +173,7 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
         registerReceiver(lftBroadcastReceiver, lftIntentFilter);
     }
 
+    //Refresh location
     @OnClick(R.id.bRefreshLocation)
     public void refresh() {
         Log.e("Refreshing", "Refreshing location");
@@ -182,6 +191,7 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
         }
     };
 
+    //Gets location in string text
     private void refreshLocation(final LocationInfo locationInfo) {
         if (locationInfo.anyLocationDataReceived()) {
             //tvGetLocation.setText(locationInfo.lastLat + ", " + locationInfo.lastLong);
@@ -198,6 +208,7 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
         }
     }
 
+    //Upload button on action bar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_new_timeline_item_activity, menu);
@@ -207,23 +218,28 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
         return true;
     }
 
+    //When upload button is clicked
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+        //Get video filesize in MB
         if (id == R.id.mUpload) {
             long fileSizeInBytes = videoFile.length();
             long fileSizeInKB = fileSizeInBytes / 1024;
             long fileSizeInMB = fileSizeInKB / 1024;
             if (fileSizeInMB <= 99999999) {
+                //Description text limit
                 if (etDescription.getText().toString().length() > 400) {
                     Toast.makeText(NewTimelineItemVideoActivity.this, "Description is more than 400 characters", Toast.LENGTH_LONG).show();
                 } else {
                     Intent i = new Intent(NewTimelineItemVideoActivity.this, UploadVideoService.class);
+                    //Trimming of text
                     if (etDescription.getText().toString() != null && etDescription.getText().toString().trim().length() > 0) {
                         i.putExtra("message", etDescription.getText().toString().trim());
                     } else {
                         i.putExtra("message", "");
                     }
+                    //Location, lat, long attached
                     i.putExtra("locationName", locationName);
                     if (currentLocation != null) {
                         i.putExtra("locationLat", Float.toString(currentLocation.lastLat));
@@ -232,6 +248,7 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
                         i.putExtra("locationLat", "");
                         i.putExtra("locationLong", "");
                     }
+                    //Creates a new item on the timeline
                     i.putExtra("file", videoFile.getAbsoluteFile().toString());
                     i.putExtra("resend", isResendingVideo);
                     if (timelineResent != null && timelineResent.getSuccess() != null && timelineResent.getSuccess().equals("0")) {//ofailed,1success,2uploading
@@ -253,6 +270,7 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    //Gets location in text class
     private class getLocationPlaceName extends AsyncTask<Void, Void, Void> {
         @Override
         protected void onPostExecute(Void aVoid) {
@@ -268,6 +286,7 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
         @Override
         protected Void doInBackground(Void... voids) {
             try {
+                //Pass in lat long to get text address
                 if (currentLocation != null) {
                     Geocoder geocoder = new Geocoder(NewTimelineItemVideoActivity.this, Locale.getDefault());
                     List<Address> addresses = geocoder.getFromLocation(currentLocation.lastLat, currentLocation.lastLong, 1);
@@ -291,6 +310,7 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
         }
     }
 
+    //Upload video class
     private class uploadVideo extends AsyncTask<Void, Void, Void> {
         MaterialDialog dialog;
         WebAPIOutput res;
@@ -300,6 +320,7 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             NewTimelineItemVideoActivity.this.runOnUiThread(new Runnable() {
+                //SQL function upload video with location, message & video
                 @Override
                 public void run() {
                     try {
@@ -344,7 +365,7 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
         @Override
         protected Void doInBackground(Void... voids) {
             try {
-
+                //Video compressing
                 String compressVideoTime = System.currentTimeMillis() + "_compressed.mp4";
                 LoadJNI vk = new LoadJNI();
                 try {
@@ -363,6 +384,7 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
                 Utils u = new Utils(NewTimelineItemVideoActivity.this);
                 videoString = u.convertVideoToString(videoFile);
                 SubmitMessage m;
+                //Gets location
                 if (locationName.equals(Consts.LOCATION_ERROR) || locationName.equals(Consts.LOCATION_LOADING)) {
                     locationName = "";
                 } else {
@@ -374,6 +396,7 @@ public class NewTimelineItemVideoActivity extends ActionBarActivity {
                     m = new SubmitMessage(u.getUnique(), etDescription.getText().toString().trim(), videoFile.getName(), videoString, "", "", locationName);
                 }
                 try {
+                    //Creates video thumbnail and save it in thumbnail folder
                     res = MainApplication.apiService.uploadContentWithMessage(m);
                     if (!isResendingVideo && res != null) {
                         Bitmap thumbnail = ThumbnailUtils.createVideoThumbnail(videoFile.getAbsolutePath().toString(), MediaStore.Video.Thumbnails.MINI_KIND);

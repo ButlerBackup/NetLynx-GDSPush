@@ -39,6 +39,7 @@ public class RegisterActivity extends ActionBarActivity {
     String regid;
     String PROJECT_NUMBER = "601395162853";
 
+    //When activity is called
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,20 +62,24 @@ public class RegisterActivity extends ActionBarActivity {
         });
     }
 
+    //When button register is clicked
     @OnClick(R.id.bRegister)
     public void register() {
+        //Check if text box fields are empty
         if (etLoginId.getText().toString().length() > 0 && etPassword.getText().toString().length() > 0 && etPhoneNumber.getText().toString().length() > 0) {
-            new registerUser().execute();
+            new registerUser().execute(); // register user
         } else {
             Toast.makeText(RegisterActivity.this, "Some fields are empty", Toast.LENGTH_LONG).show();
         }
     }
 
+    //Register user class
     private class registerUser extends AsyncTask<Void, Void, Void> {
         WebAPIOutput res;
         MaterialDialog pd;
         boolean gcmIdSuccess = false;
 
+        //Connect to server
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -112,6 +117,7 @@ public class RegisterActivity extends ActionBarActivity {
                     if (pd != null && pd.isShowing()) {
                         pd.dismiss();
                     }
+                    //When success retrieve gcmid, store these details
                     if (gcmIdSuccess) {
                         if (res != null && res.getStatusDescription() != null && res.getStatusCode() != 0) {
                             new Utils(RegisterActivity.this).storeUnique(regid);
@@ -124,14 +130,14 @@ public class RegisterActivity extends ActionBarActivity {
                             new Utils(RegisterActivity.this).storeSecurePreferenceValue(Consts.REGISTER_RECEIVE_MESSAGE, String.valueOf(res.getReceiveMessage()));
                             startActivity(new Intent(RegisterActivity.this, VerifyPinActivity.class));
                             finish();
-                        } else {
-                            if (res != null && res.getStatusDescription() != null) {
+                        } else { //When unable to retrieve any of the details
+                            if (res != null && res.getStatusDescription() != null) { // if there's description for the error
                                 Toast.makeText(RegisterActivity.this, res.getStatusDescription(), Toast.LENGTH_LONG).show();
-                            } else {
+                            } else { // nothing at all
                                 Toast.makeText(RegisterActivity.this, "Internal error. Please try again", Toast.LENGTH_LONG).show();
                             }
                         }
-                    } else {
+                    } else { //When unable to contact google for gcmid
                         Toast.makeText(RegisterActivity.this, "Unable to get GCM ID from Google", Toast.LENGTH_LONG).show();
                     }
                 }

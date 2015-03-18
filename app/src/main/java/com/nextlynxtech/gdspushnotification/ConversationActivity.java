@@ -33,6 +33,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import de.greenrobot.event.EventBus;
 
+//Generate the main conversation screen
 public class ConversationActivity extends ActionBarActivity {
     @InjectView(R.id.lvConversation)
     ListView lvConversation;
@@ -55,6 +56,7 @@ public class ConversationActivity extends ActionBarActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
         EventBus.getDefault().register(ConversationActivity.this);
+		//Display set message eventid and title
         if (getIntent().hasExtra("message")) {
             HashMap<String, String> m = (HashMap<String, String>) getIntent().getSerializableExtra("message");
             eventId = Integer.parseInt(m.get("eventId"));
@@ -63,11 +65,13 @@ public class ConversationActivity extends ActionBarActivity {
             mLoadConversation = new loadConversation();
             mLoadConversation.execute();
         } else {
+		//If failed to get any message display
             Toast.makeText(ConversationActivity.this, "Unable to get message content", Toast.LENGTH_LONG).show();
             finish();
         }
     }
 
+	//Back button on the action bar
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -78,6 +82,7 @@ public class ConversationActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+	//Calling of SQL load conversation
     private class loadConversation extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... params) {
@@ -88,20 +93,22 @@ public class ConversationActivity extends ActionBarActivity {
             return null;
         }
 
+		//Loads all the main title text into the layout
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    if (!isCancelled()) {
-                        if (data.size() > 0) {
+                    if (!isCancelled()) { //If loading is not cancelled
+                        if (data.size() > 0) { //If there is message data >0
                             adapter = new ConversationAdapter(ConversationActivity.this, data);
                             index = lvConversation.getFirstVisiblePosition();
                             View v = lvConversation.getChildAt(0);
                             top = (v == null) ? 0 : (v.getTop() - lvConversation.getPaddingTop());
                             lvConversation.setAdapter(adapter);
                             lvConversation.setSelectionFromTop(index, top);
+							//Display text box when clicked
                             lvConversation.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                                 @Override
                                 public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
@@ -124,7 +131,7 @@ public class ConversationActivity extends ActionBarActivity {
                                                         @Override
                                                         public void onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
                                                             if (r.get(which).equals("Custom Reply")) {
-                                                                showCustomReply(messageId);
+                                                                showCustomReply(messageId); //Goes to custom reply class
                                                             } else {
                                                                 new sendReplyToMessage().execute(r.get(which), messageId);
                                                             }
@@ -132,10 +139,11 @@ public class ConversationActivity extends ActionBarActivity {
                                                     })
                                                     .show();
                                         } else {
-                                            showCustomReply(messageId);
+                                            showCustomReply(messageId); //Display custom text after sending
                                         }
+									//Resend button if fail
                                     } else if (m.getMine() == 1 && m.getReplySuccess() != 1) {
-                                        new MaterialDialog.Builder(ConversationActivity.this).content("Resend message?").title("Resend").positiveText("Yes").negativeText("No").cancelable(false).callback(new MaterialDialog.ButtonCallback() {
+										new MaterialDialog.Builder(ConversationActivity.this).content("Resend message?").title("Resend").positiveText("Yes").negativeText("No").cancelable(false).callback(new MaterialDialog.ButtonCallback() {
                                             @Override
                                             public void onPositive(MaterialDialog dialog) {
                                                 super.onPositive(dialog);
@@ -153,16 +161,19 @@ public class ConversationActivity extends ActionBarActivity {
         }
     }
 
-    private void showCustomReply(final String messageId) {
+	//Custom Reply class
+    private void showCustomReply(final String messageId) { 
         EditText etReply;
         final View positiveAction;
+		//Display custom reply text 
         MaterialDialog dialog = new MaterialDialog.Builder(this)
                 .title("Custom Reply")
-                .customView(R.layout.activity_conversation_custom_reply, true)
-                .positiveText("Send")
+                .customView(R.layout.activity_conversation_custom_reply, true)  
+                .positiveText("Send") 
                 .negativeText(android.R.string.cancel)
                 .callback(new MaterialDialog.ButtonCallback() {
                     @Override
+					//Set message reply to positive when successful
                     public void onPositive(MaterialDialog dialog) {
                         String reply = ((EditText) dialog.getCustomView().findViewById(R.id.etReply)).getText().toString();
                         new sendReplyToMessage().execute(reply, messageId);
@@ -172,8 +183,10 @@ public class ConversationActivity extends ActionBarActivity {
                     public void onNegative(MaterialDialog dialog) {
                     }
                 }).build();
-        etReply = (EditText) dialog.getCustomView().findViewById(R.id.etReply);
-        positiveAction = dialog.getActionButton(DialogAction.POSITIVE);
+        etReply = (EditText) dialog.getCustomView().findViewById(R.id.etReply); //Get Reply status
+        positiveAction = dialog.getActionButton(DialogAction.POSITIVE); //Display positive reply status
+		
+		//Trim & Limits text word count
         etReply.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -204,10 +217,12 @@ public class ConversationActivity extends ActionBarActivity {
         }
     }
 
+	//Resend reply class
     private class resendReply extends AsyncTask<Message, Void, Void> {
         GenericResult r = null;
         Message m;
 
+		//Check for connection status
         @Override
         protected Void doInBackground(Message... params) {
             m = params[0];
@@ -220,6 +235,7 @@ public class ConversationActivity extends ActionBarActivity {
             return null;
         }
 
+		//Update reply via resend
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
@@ -245,6 +261,7 @@ public class ConversationActivity extends ActionBarActivity {
         }
     }
 
+	//Reply message SQL class
     private class sendReplyToMessage extends AsyncTask<String, Void, Void> {
         GenericResult m = null;
         String messageId = "", messageContent = "";
@@ -276,7 +293,7 @@ public class ConversationActivity extends ActionBarActivity {
                     Intent i = new Intent(ConversationActivity.this, SendReplyService.class);
                     i.putExtra("messageId", id);
                     i.putExtra("messageContent", messageId);
-                    WakefulIntentService.sendWakefulWork(ConversationActivity.this, i);
+                    WakefulIntentService.sendWakefulWork(ConversationActivity.this, i); 
                 }
             });
         }

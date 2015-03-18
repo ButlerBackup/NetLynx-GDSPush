@@ -67,6 +67,7 @@ public class MainActivity extends ActionBarActivity {
         setSupportActionBar(toolbar);
     }
 
+	//SQL class to load events
     private class loadEventMessages extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... params) {
@@ -77,6 +78,7 @@ public class MainActivity extends ActionBarActivity {
             return null;
         }
 
+		//Main class to load the events layout
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
@@ -84,11 +86,12 @@ public class MainActivity extends ActionBarActivity {
                 @Override
                 public void run() {
                     if (!isCancelled()) {
-                        if (data.size() > 0) {
+                        if (data.size() > 0) { //If data exist >0 load
                             MainAdapter adapter = new MainAdapter(MainActivity.this, data);
                             lvMain.setAdapter(adapter);
                             lvMain.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                                 @Override
+								//When clicked open up conversation activity 
                                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                                     HashMap<String, String> m = data.get(position);
                                     startActivity(new Intent(MainActivity.this, ConversationActivity.class).putExtra("message", m));
@@ -114,6 +117,7 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+	//Check if user is registered or not
     @Override
     protected void onDestroy() {
         if (EventBus.getDefault().isRegistered(MainActivity.this)) {
@@ -122,18 +126,21 @@ public class MainActivity extends ActionBarActivity {
         super.onDestroy();
     }
 
+	//Photoupload button & Refresh button on action bar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
+		//Refresh
         menu.findItem(R.id.menu_main_refresh).setIcon(
                 new IconDrawable(this, Iconify.IconValue.md_refresh)
                         .colorRes(R.color.white)
                         .actionBarSize());
+		//Photoupload
         if (new Utils(MainActivity.this).isPhotoUpload()) {
             menu.findItem(R.id.menu_main_show_list).setIcon(new IconDrawable(this, Iconify.IconValue.md_photo)
                     .colorRes(R.color.white)
                     .actionBarSize());
-            menu.findItem(R.id.menu_main_show_list).setVisible(true);
+            menu.findItem(R.id.menu_main_show_list).setVisible(true); //Opens up photoupload
         } else {
             menu.findItem(R.id.menu_main_show_list).setVisible(false);
         }
@@ -141,7 +148,7 @@ public class MainActivity extends ActionBarActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) { //Actions to be done after select
         int id = item.getItemId();
         switch (id) {
             case R.id.menu_main_refresh:

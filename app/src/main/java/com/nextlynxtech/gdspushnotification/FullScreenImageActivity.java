@@ -18,6 +18,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import it.sephiroth.android.library.imagezoom.ImageViewTouch;
 
+//Fullscreen image video class
 public class FullScreenImageActivity extends ActionBarActivity {
     @InjectView(R.id.ivImageZoom)
     ImageViewTouch ivImageZoom;
@@ -36,22 +37,24 @@ public class FullScreenImageActivity extends ActionBarActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
-        if (getIntent().hasExtra("image")) {
+        if (getIntent().hasExtra("image")) { //Get file type if it is image
             Picasso.with(FullScreenImageActivity.this).load(new File(new Utils(FullScreenImageActivity.this).createFolder(), getIntent().getStringExtra("image"))).into(ivImageZoom);
-            vvVideoZoom.setVisibility(View.GONE);
-        } else if (getIntent().hasExtra("video")) {
-            ivImageZoom.setVisibility(View.GONE);
+            vvVideoZoom.setVisibility(View.GONE); //Disable video loading
+        } else if (getIntent().hasExtra("video")) { //Get file type if it is video
+            ivImageZoom.setVisibility(View.GONE); //Disable image loading
             vvVideoZoom.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
-                    mp.setLooping(true);
+                    mp.setLooping(true); //Video will loop when end
                 }
             });
+			//Set video file path and play
             vvVideoZoom.setVideoURI(Uri.parse(new Utils(FullScreenImageActivity.this).createFolder() + "/" + getIntent().getStringExtra("video")));
             vvVideoZoom.start();
         }
     }
 
+	//Back button on the action bar
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();

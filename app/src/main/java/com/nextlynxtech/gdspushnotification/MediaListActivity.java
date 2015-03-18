@@ -44,7 +44,7 @@ import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshLa
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 
-
+//Media List Class
 public class MediaListActivity extends ActionBarActivity {
     @InjectView(R.id.lvTimeline)
     ListView lvTimeline;
@@ -55,7 +55,7 @@ public class MediaListActivity extends ActionBarActivity {
     Toolbar toolbar;
 
     String pictureDirectory = "";
-    ArrayList<Timeline> data = new ArrayList<Timeline>();
+    ArrayList<Timeline> data = new ArrayList<>();
     MultiChoiceBaseAdapter adapter;
     Bundle saveInstanceState;
     String filePath;
@@ -113,6 +113,7 @@ public class MediaListActivity extends ActionBarActivity {
         this.saveInstanceState = savedInstanceState;
     }
 
+	//SQL for loading video & images
     private class loadTimeline extends AsyncTask<Void, Void, Void> {
 
         @Override
@@ -133,10 +134,10 @@ public class MediaListActivity extends ActionBarActivity {
             MediaListActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    if (!isCancelled()) {
+                    if (!isCancelled()) { //If the activity is not cancelled
                         lvTimeline.setVisibility(View.GONE);
                         try {
-                            mPullToRefreshLayout.setRefreshComplete();
+                            mPullToRefreshLayout.setRefreshComplete(); //Refresh
                             Log.e("DONE", "ONREFRESHCOMPLETE");
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -153,6 +154,7 @@ public class MediaListActivity extends ActionBarActivity {
                             lvTimeline.setSelectionFromTop(MainApplication.lvIndex, MainApplication.lvTop);
                         }
                         lvTimeline.setVisibility(View.VISIBLE);
+						//Set scrollable 
                         lvTimeline.setOnScrollListener(new AbsListView.OnScrollListener() {
                             @Override
                             public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -166,6 +168,7 @@ public class MediaListActivity extends ActionBarActivity {
                                 MainApplication.lvTop = (v == null) ? 0 : (v.getTop() - lvTimeline.getPaddingTop());
                             }
                         });
+						//Open text box with resend when clicked
                         adapter.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                             @Override
                             public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
@@ -175,9 +178,9 @@ public class MediaListActivity extends ActionBarActivity {
                                         super.onPositive(dialog);
                                         Timeline item = data.get(i);
                                         Intent i;
-                                        if (!item.getImage().equals("")) {
+                                        if (!item.getImage().equals("")) { //If resend item is an image open photo activity
                                             i = new Intent(MediaListActivity.this, NewTimelineItemPhotoActivity.class);
-                                        } else {
+                                        } else { //else open video activity
                                             i = new Intent(MediaListActivity.this, NewTimelineItemVideoActivity.class);
                                         }
                                         i.putExtra(Consts.TIMELINE_ITEM_SELECTED_FROM_MAINACTIVITY, item);
@@ -201,6 +204,7 @@ public class MediaListActivity extends ActionBarActivity {
         return true;
     }
 
+	//Take photo or video 
     private void showCameraDialog() {
         new MaterialDialog.Builder(this)
                 .items(R.array.fabActionMain)
@@ -210,6 +214,7 @@ public class MediaListActivity extends ActionBarActivity {
                         switch (which) {
                             case 0: // take photo
                                 Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+								//Create folder and image in jpg 
                                 if (!new Utils(MediaListActivity.this).createFolder().equals("")) {
                                     pictureDirectory = System.currentTimeMillis() + ".jpg";
                                     File output = new File(new Utils(MediaListActivity.this).createFolder(), pictureDirectory);
@@ -220,25 +225,29 @@ public class MediaListActivity extends ActionBarActivity {
                                 }
                                 break;
 
-                            case 1:
+                            case 1: // take video
                                 Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
                                 if (takeVideoIntent.resolveActivity(getPackageManager()) != null) {
+									//Compress video
                                     if (new Utils(MediaListActivity.this).compressVideoMMS()) {
                                         takeVideoIntent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 0);
                                     }
+									//Video filesize limit
                                     if (new Utils(MediaListActivity.this).videoFileSizeLimit()) {
                                         takeVideoIntent.putExtra(MediaStore.EXTRA_SIZE_LIMIT, 2097152L); // 2 mb
                                     }
-                                    takeVideoIntent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 15);
+									//Video filelength limit
+                                    takeVideoIntent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 15); // 15 seconds
                                     startActivityForResult(takeVideoIntent, Consts.CAMERA_VIDEO_REQUEST);
                                 }
                                 break;
-                            case 2: //pick gallery
+                            case 2: //pick photo from gallery
                                 if (!new Utils(MediaListActivity.this).createFolder().equals("")) {
                                     imageChooserManager = new ImageChooserManager(MediaListActivity.this,
                                             ChooserType.REQUEST_PICK_PICTURE, "gdsupload", false);
                                     imageChooserManager.setImageChooserListener(new ImageChooserListener() {
                                         @Override
+										//Pass image on to photo activity when chosen
                                         public void onImageChosen(ChosenImage image) {
                                             if (image != null) {
                                                 startActivity(new Intent(MediaListActivity.this, NewTimelineItemPhotoActivity.class).putExtra(Consts.IMAGE_GALLERY_PASS_EXTRAS, image.getFilePathOriginal()));
@@ -275,6 +284,7 @@ public class MediaListActivity extends ActionBarActivity {
                                         ChooserType.REQUEST_PICK_VIDEO, false);
                                 videoChooserManager.setVideoChooserListener(new VideoChooserListener() {
                                     @Override
+									//Pass video to video activity when chosen
                                     public void onVideoChosen(ChosenVideo chosenVideo) {
                                         if (chosenVideo != null) {
                                             Log.e("Video path", chosenVideo.getVideoFilePath());
@@ -304,24 +314,28 @@ public class MediaListActivity extends ActionBarActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == Consts.CAMERA_PHOTO_REQUEST && resultCode == RESULT_OK) {
+		//If successful picture taken open photo activity before upload
+        if (requestCode == Consts.CAMERA_PHOTO_REQUEST && resultCode == RESULT_OK) { 
             startActivity(new Intent(MediaListActivity.this, NewTimelineItemPhotoActivity.class).putExtra(Consts.IMAGE_CAMERA_PASS_EXTRAS, pictureDirectory));
         } else if (requestCode == Consts.SETTING_RESTART_CODE && resultCode == RESULT_OK) {
             Intent i = new Intent(MediaListActivity.this, RegisterActivity.class);
             i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(i);
             finish();
-        } else if (requestCode == ChooserType.REQUEST_PICK_PICTURE && resultCode == RESULT_OK) {
+		//If successful picture choosed open photo activity before upload
+        } else if (requestCode == ChooserType.REQUEST_PICK_PICTURE && resultCode == RESULT_OK) { 
             if (imageChooserManager == null) {
                 reinitializeImageChooser();
             }
             imageChooserManager.submit(requestCode, data);
-        } else if (requestCode == ChooserType.REQUEST_PICK_VIDEO && resultCode == RESULT_OK) {
+		//If successful video choosed open video activity before upload
+        } else if (requestCode == ChooserType.REQUEST_PICK_VIDEO && resultCode == RESULT_OK) { 
             if (videoChooserManager == null) {
                 reinitializeVideoChooser();
             }
             videoChooserManager.submit(requestCode, data);
-        } else if (requestCode == Consts.CAMERA_VIDEO_REQUEST && resultCode == RESULT_OK) {
+		//If successful video taken open video activity before upload
+        } else if (requestCode == Consts.CAMERA_VIDEO_REQUEST && resultCode == RESULT_OK) { 
             try {
                 Uri _uri = data.getData();
                 Cursor cursor = getContentResolver().query(_uri, new String[]{MediaStore.Images.Media.DATA}, null, null, null);
@@ -336,6 +350,7 @@ public class MediaListActivity extends ActionBarActivity {
         }
     }
 
+	//Select video from filepath
     private void reinitializeVideoChooser() {
         videoChooserManager = new VideoChooserManager(MediaListActivity.this, ChooserType.REQUEST_CAPTURE_VIDEO,
                 "gdsupload", true);
@@ -388,6 +403,7 @@ public class MediaListActivity extends ActionBarActivity {
         }
     }
 
+	//Back button and settings button on action bar
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();

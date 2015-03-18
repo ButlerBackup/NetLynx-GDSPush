@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
@@ -67,6 +66,7 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
     String locationName = "";
     Timeline timelineResent;
 
+    //When activity is called
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,11 +75,13 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
+        //Copy image and load after taking
         if (getIntent().hasExtra(Consts.IMAGE_CAMERA_PASS_EXTRAS)) {
             pictureFileName = getIntent().getStringExtra(Consts.IMAGE_CAMERA_PASS_EXTRAS);
             imgFile = new File(new Utils(NewTimelineItemPhotoActivity.this).createFolder(), pictureFileName);
             Log.e("FILENAME", imgFile.getAbsolutePath().toString());
             loadImageFile();
+            //Get filepath from gallery and copy the exact image duplicating it
         } else if (getIntent().hasExtra(Consts.IMAGE_GALLERY_PASS_EXTRAS)) {
             String currentTime = System.currentTimeMillis() + "";
             pictureFileName = getIntent().getStringExtra(Consts.IMAGE_GALLERY_PASS_EXTRAS);
@@ -91,12 +93,13 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
             try {
                 FileUtils.copyFile(tempFile, destination);
                 imgFile = new File(new Utils(NewTimelineItemPhotoActivity.this).createFolder(), currentTime + ".jpg");
-                tempFile.delete();
+                //tempFile.delete();
                 loadImageFile();
             } catch (IOException e) {
                 e.printStackTrace();
                 Toast.makeText(NewTimelineItemPhotoActivity.this, "Failed to copy file to GDSFolder", Toast.LENGTH_SHORT).show();
             }
+            //Gets image from resend
         } else if (getIntent().hasExtra(Consts.TIMELINE_ITEM_SELECTED_FROM_MAINACTIVITY)) {
             timelineResent = (Timeline) getIntent().getSerializableExtra(Consts.TIMELINE_ITEM_SELECTED_FROM_MAINACTIVITY);
             pictureFileName = timelineResent.getImage();
@@ -106,6 +109,7 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
         } else {
             finish();
         }
+        //If file is not resend, gets location
         if (!isResendingPhoto) {
             tvGetLocation.setText(Consts.LOCATION_LOADING);
             LocationLibrary.forceLocationUpdate(NewTimelineItemPhotoActivity.this);
@@ -113,15 +117,17 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
             final IntentFilter lftIntentFilter = new IntentFilter(LocationLibraryConstants.getLocationChangedPeriodicBroadcastAction());
             registerReceiver(lftBroadcastReceiver, lftIntentFilter);
         } else {
-            etDescription.setText(timelineResent.getMessage());
+            etDescription.setText(timelineResent.getMessage()); //Resend text from timeline
             //Log.e("HERE", timelineResent.getLocation().toString());
             //Toast.makeText(NewTimelineItemPhotoActivity.this, timelineResent.getLocation().toString(), Toast.LENGTH_LONG).show();
+            //If there is no location previously, it will attempt to get location again
             if (timelineResent.getLocation() != null && timelineResent.getLocation().length() > 0) {
                 locationName = timelineResent.getLocation();
                 tvGetLocation.setText(locationName);
             } else {
                 tvGetLocation.setText(Consts.LOCATION_ERROR);
             }
+            //Display location
             if (timelineResent.getLocationLat() != null && timelineResent.getLocationLat().length() > 0 && timelineResent.getLocationLong() != null && timelineResent.getLocationLong().length() > 0) {
                 if (currentLocation == null) {
                     currentLocation = new LocationInfo(NewTimelineItemPhotoActivity.this);
@@ -132,6 +138,7 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
         }
     }
 
+    //Display image file
     private void loadImageFile() {
         if (imgFile.exists()) {
             Log.e("File Size", imgFile.length() + "");
@@ -146,6 +153,7 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
         }
     }
 
+    //Get location
     @OnClick(R.id.tvGetLocation)
     public void refreshLocation() {
         Log.e("Refreshing", "Refreshing location");
@@ -155,6 +163,7 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
         registerReceiver(lftBroadcastReceiver, lftIntentFilter);
     }
 
+    //Refresh location
     @OnClick(R.id.bRefreshLocation)
     public void refresh() {
         Log.e("Refreshing", "Refreshing location");
@@ -164,6 +173,7 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
         registerReceiver(lftBroadcastReceiver, lftIntentFilter);
     }
 
+    //Gets location info
     private final BroadcastReceiver lftBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -172,6 +182,7 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
         }
     };
 
+    //Gets location in string text
     private void refreshLocation(final LocationInfo locationInfo) {
         if (locationInfo.anyLocationDataReceived()) {
             //tvGetLocation.setText(locationInfo.lastLat + ", " + locationInfo.lastLong);
@@ -188,6 +199,7 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
         }
     }
 
+    //Upload button on action bar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_new_timeline_item_activity, menu);
@@ -197,19 +209,23 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
         return true;
     }
 
+    //When upload button is clicked
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.mUpload) {
+            //Description text limit
             if (etDescription.getText().toString().length() > 400) {
                 Toast.makeText(NewTimelineItemPhotoActivity.this, "Description is more than 400 characters", Toast.LENGTH_LONG).show();
-            } else {
+            } else { //Carry on upload
                 Intent i = new Intent(NewTimelineItemPhotoActivity.this, UploadPhotoService.class);
+                //Trimming of text
                 if (etDescription.getText().toString() != null && etDescription.getText().toString().trim().length() > 0) {
                     i.putExtra("message", etDescription.getText().toString().trim());
                 } else {
                     i.putExtra("message", "");
                 }
+                //Location name, lat, long attached
                 i.putExtra("locationName", locationName);
                 if (currentLocation != null) {
                     i.putExtra("locationLat", Float.toString(currentLocation.lastLat));
@@ -219,6 +235,7 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
                     i.putExtra("locationLong", "");
                 }
                 i.putExtra("file", imgFile.getAbsoluteFile().toString());
+                //Creates a new item on the timeline
                 if (timelineResent != null && timelineResent.getSuccess() != null && timelineResent.getSuccess().equals("0")) {//ofailed,1success,2uploading
                     i.putExtra("failedResend", true);
                     i.putExtra("id", timelineResent.getId());
@@ -237,6 +254,7 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    //Gets location in string text class
     private class getLocationPlaceName extends AsyncTask<Void, Void, Void> {
         @Override
         protected void onPostExecute(Void aVoid) {
@@ -252,6 +270,7 @@ public class NewTimelineItemPhotoActivity extends ActionBarActivity {
         @Override
         protected Void doInBackground(Void... voids) {
             try {
+                //Pass in lat long to get text address
                 if (currentLocation != null) {
                     Geocoder geocoder = new Geocoder(NewTimelineItemPhotoActivity.this, Locale.getDefault());
                     List<Address> addresses = geocoder.getFromLocation(currentLocation.lastLat, currentLocation.lastLong, 1);

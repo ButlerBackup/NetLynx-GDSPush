@@ -20,20 +20,23 @@ public class RegistrationDoneActivity extends ActionBarActivity {
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
 
+	//When activity is called
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration_done);
         ButterKnife.inject(this);
         setSupportActionBar(toolbar);
+		//Gets username & usergroup for display for the welcome message
         if (getIntent().hasExtra(Consts.REGISTER_USER_NAME) && getIntent().hasExtra(Consts.REGISTER_USER_GROUP)) {
             tvRegistrationDone.setText("Welcome " + getIntent().getStringExtra(Consts.REGISTER_USER_NAME) + ". You are registered in the " + getIntent().getStringExtra(Consts.REGISTER_USER_GROUP) + " group");
-        } else {
+        } else { //Unable to get username or usergroup from the server
             Toast.makeText(RegistrationDoneActivity.this, "Unable to receive data from registration", Toast.LENGTH_LONG).show();
             finish();
         }
     }
 
+	//Button done to open mainactivity
     @OnClick(R.id.bRegistrationDone)
     public void registrationDone() {
         startActivity(new Intent(RegistrationDoneActivity.this, MainActivity.class));

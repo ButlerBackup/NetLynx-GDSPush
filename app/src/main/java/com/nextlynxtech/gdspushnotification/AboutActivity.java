@@ -15,6 +15,7 @@ public class AboutActivity extends ActionBarActivity {
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
 
+	//When activity is called
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,6 +33,7 @@ public class AboutActivity extends ActionBarActivity {
         }
     }
 
+	//Back button on action bar
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();

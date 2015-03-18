@@ -29,6 +29,7 @@ public class VerifyPinActivity extends ActionBarActivity {
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
 
+	//When activity is called
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +39,7 @@ public class VerifyPinActivity extends ActionBarActivity {
         etPin.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                if (actionId == EditorInfo.IME_ACTION_DONE) { // if keyboard detects button "Next" pressed, auto click register button
                     bRegister.performClick();
                     return true;
                 }
@@ -47,15 +48,18 @@ public class VerifyPinActivity extends ActionBarActivity {
         });
     }
 
+	//Calling of class when clicked
     @OnClick(R.id.bVerifyPin)
     public void verify() {
         new verifyPin().execute();
     }
 
+	//Verfity pin class
     private class verifyPin extends AsyncTask<Void, Void, Void> {
         WebAPIOutput res;
         MaterialDialog pd;
 
+		//Contacting server before execute
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -70,6 +74,7 @@ public class VerifyPinActivity extends ActionBarActivity {
             return null;
         }
 
+		//Verify pin 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
@@ -79,12 +84,12 @@ public class VerifyPinActivity extends ActionBarActivity {
                     if (pd != null && pd.isShowing()) {
                         pd.dismiss();
                     }
-                    if (res.getStatusCode() == 1) {
+                    if (res.getStatusCode() == 1) { //Start next activity if verify successful
                         new Utils(VerifyPinActivity.this).storeSecurePreferenceValue(Consts.REGISTER_USER_NAME, res.getVerifyPinUsername());
                         new Utils(VerifyPinActivity.this).storeSecurePreferenceValue(Consts.REGISTER_USER_GROUP, res.getVerifyPinUserGroup());
                         startActivity(new Intent(VerifyPinActivity.this, RegistrationDoneActivity.class).putExtra(Consts.REGISTER_USER_NAME, res.getVerifyPinUsername()).putExtra(Consts.REGISTER_USER_GROUP, res.getVerifyPinUserGroup()));
                         finish();
-                    } else {
+                    } else { //Display status result
                         Toast.makeText(VerifyPinActivity.this, res.getStatusDescription(), Toast.LENGTH_LONG).show();
                     }
                 }
